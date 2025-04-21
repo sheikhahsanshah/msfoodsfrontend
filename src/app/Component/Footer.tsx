@@ -8,31 +8,33 @@ const Footer = () => {
             <div className="container mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div>
-                        <Link href={'/'} className="text-2xl font-bold">MSFood</Link>
+                        <Link href={'/'} className="text-2xl font-bold">msFoods</Link>
                         <div className='mt-4 space-y-2'>
-                            <p className="text-sm">Mail: hi.avitex@gmail.com</p>
-                            <p className="text-sm">Phone: 1-333-345-6868</p>
-                            <p className="text-sm">Address: 549 Oak St. Crystal Lake, IL 60014</p>
+                            <p className="text-sm">Email: msfoodscontact@gmail.com</p>
+                            <p className="text-sm">Phone: 0342-0411505</p>
+                            <p className="text-sm">
+                                Address: Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
+                            </p>
+                            <p className="text-sm">Registered Taxpayer: D893497 (Active)</p>
                         </div>
                     </div>
 
                     <div>
                         <h4 className="text-lg font-semibold mb-3">Information</h4>
                         <ul className="space-y-2">
-                            <li><Link href={'/pages/contact'} className='text-sm hover:underline'>Contact us</Link></li>
+                            <li><Link href={'/contact'} className='text-sm hover:underline'>Contact Us</Link></li>
                             <li><Link href={'#!'} className='text-sm hover:underline'>Career</Link></li>
-                            <li><Link href={'/my-account'} className='text-sm hover:underline'>My Account</Link></li>
-                            <li><Link href={'/order-tracking'} className='text-sm hover:underline'>Order & Returns</Link></li>
-                            <li><Link href={'/pages/faqs'} className='text-sm hover:underline'>FAQs</Link></li>
+                            <li><Link href={'/user/dashboard/order-history'} className='text-sm hover:underline'>Order & Returns</Link></li>
+                            <li><Link href={'/user/about'} className='text-sm hover:underline'>FAQs</Link></li>
                         </ul>
                     </div>
 
                     <div>
                         <h4 className="text-lg font-semibold mb-3">Customer Services</h4>
                         <ul className="space-y-2">
-                            <li><Link href={'/pages/faqs'} className='text-sm hover:underline'>Orders FAQs</Link></li>
-                            <li><Link href={'/pages/faqs'} className='text-sm hover:underline'>Shipping</Link></li>
-                            <li><Link href={'/pages/faqs'} className='text-sm hover:underline'>Privacy Policy</Link></li>
+                            <li><Link href={'/faqs'} className='text-sm hover:underline'>Orders FAQs</Link></li>
+                            <li><Link href={'/faqs'} className='text-sm hover:underline'>Shipping</Link></li>
+                            <li><Link href={'/faqs'} className='text-sm hover:underline'>Privacy Policy</Link></li>
                             <li><Link href={'/order-tracking'} className='text-sm hover:underline'>Return & Refund</Link></li>
                         </ul>
                     </div>
@@ -45,17 +47,24 @@ const Footer = () => {
                             <button className='bg-black text-white p-2 rounded-r'><ArrowRight size={20} /></button>
                         </form>
                         <div className='flex gap-4 mt-4'>
-                            <Link href={'https://www.facebook.com/'} target='_blank'><Facebook size={20} /></Link>
-                            <Link href={'https://www.instagram.com/'} target='_blank'><Instagram size={20} /></Link>
-                            <Link href={'https://www.twitter.com/'} target='_blank'><Twitter size={20} /></Link>
-                            <Link href={'https://www.youtube.com/'} target='_blank'><Youtube size={20} /></Link>
-                          
+                            <Link href={'https://www.facebook.com/share/12CHsKxqB85/'} target='_blank' aria-label="Facebook">
+                                <Facebook size={20} />
+                            </Link>
+                            <Link href={'https://www.instagram.com/msfoods12?igsh=OGx2NWowdjl3djhy'} target='_blank' aria-label="Instagram">
+                                <Instagram size={20} />
+                            </Link>
+                            <Link href={'https://www.twitter.com/'} target='_blank' aria-label="Twitter">
+                                <Twitter size={20} />
+                            </Link>
+                            <Link href={'https://www.youtube.com/'} target='_blank' aria-label="YouTube">
+                                <Youtube size={20} />
+                            </Link>
                         </div>
                     </div>
                 </div>
 
                 <div className="border-t border-gray-300 mt-8 pt-4 flex flex-col md:flex-row justify-between items-center">
-                    <p className="text-sm">©2023 MSFood. All Rights Reserved.</p>
+                    <p className="text-sm">©2024 msFoods. All Rights Reserved.</p>
                     <div className='flex gap-4 items-center'>
                         <select className='bg-transparent text-sm border border-gray-300 p-1 rounded'>
                             <option value="English">English</option>

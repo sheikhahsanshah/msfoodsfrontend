@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Send } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://your-backend-api.com";
 
 export default function Contact() {
     const [formData, setFormData] = useState({
@@ -52,8 +52,8 @@ export default function Contact() {
             <div className="flex flex-col lg:flex-row justify-between gap-16">
                 {/* Left Section - Contact Form */}
                 <div className="lg:w-2/3">
-                    <h2 className="text-4xl font-bold text-black">Drop Us A Line</h2>
-                    <p className="mt-3 text-black">Use the form below to get in touch with the sales team</p>
+                    <h2 className="text-4xl font-bold text-black">Get In Touch</h2>
+                    <p className="mt-3 text-black">Use the form below to contact the msFoods team</p>
 
                     <form onSubmit={handleSubmit} className="mt-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -67,7 +67,6 @@ export default function Contact() {
                                 onChange={handleChange}
                                 required
                             />
-
                             <input
                                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                                 id="email"
@@ -122,29 +121,23 @@ export default function Contact() {
                 {/* Right Section - Contact Details */}
                 <div className="lg:w-1/3 space-y-12">
                     <div>
-                        <h3 className="text-2xl font-bold text-black">Our Store</h3>
+                        <h3 className="text-2xl font-bold text-black">Our Location</h3>
                         <p className="mt-3 text-gray-700">
-                            Plot No 9R-116 Opposite G.P.O Circular Road Kasur
+                            Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
                         </p>
                         <p className="mt-3 text-gray-700">
-                            Phone: <span className="whitespace-nowrap">+92 3027801806</span>
+                            Phone: <span className="whitespace-nowrap">0342-0411505</span>
                         </p>
                         <p className="mt-1 text-gray-700">
-                            Email: <span className="whitespace-nowrap">peachflask988@gmail.com</span>
+                            Email: <span className="whitespace-nowrap">msfoodscontact@gmail.com</span>
                         </p>
                     </div>
 
                     <div>
-                        <h3 className="text-2xl font-bold text-black">Open Hours</h3>
-                        <p className="mt-3 text-gray-700">
-                            Mon - Fri: <span className="whitespace-nowrap">7:30am - 8:00pm PST</span>
-                        </p>
-                        <p className="mt-3 text-gray-700">
-                            Saturday: <span className="whitespace-nowrap">8:00am - 6:00pm PST</span>
-                        </p>
-                        <p className="mt-3 text-gray-700">
-                            Sunday: <span className="whitespace-nowrap">9:00am - 5:00pm PST</span>
-                        </p>
+                        <h3 className="text-2xl font-bold text-black">Business Hours</h3>
+                        <p className="mt-3 text-gray-700">Mon - Fri: 9:00 AM – 6:00 PM</p>
+                        <p className="mt-3 text-gray-700">Saturday: 10:00 AM – 4:00 PM</p>
+                        <p className="mt-3 text-gray-700">Sunday: Closed</p>
                     </div>
                 </div>
             </div>

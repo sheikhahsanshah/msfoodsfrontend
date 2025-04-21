@@ -9,8 +9,45 @@ import { CartProvider } from "./Component/CartContext";
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"] });
 
 export const metadata: Metadata = {
-    title: "Peach Flask",
-    description: "Peach Flask eCommerce store",
+    title: "msFoods | Authentic Spices & Herbs Online Store",
+    description:
+        "Shop premium quality spices and herbs online at msFoods. Discover flavorful ingredients sourced sustainably to elevate your cooking experience.",
+    keywords: [
+        "msFoods",
+        "spices store",
+        "herbs online",
+        "buy spices online",
+        "natural herbs",
+        "organic spices",
+        "Indian spices",
+        "premium herbs",
+        "cooking spices",
+        "gourmet seasonings",
+    ],
+    openGraph: {
+        title: "msFoods | Authentic Spices & Herbs Online",
+        description:
+            "Explore a wide range of high-quality spices and herbs with msFoods. Perfect for home chefs and food lovers.",
+        url: "https://www.msfoods.com",
+        siteName: "msFoods",
+        images: [
+            {
+                url: "https://www.msfoods.com/msm.png", // Make sure to host a relevant OG image
+                width: 1200,
+                height: 630,
+                alt: "msFoods spices and herbs",
+            },
+        ],
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "msFoods | Authentic Spices & Herbs Online Store",
+        description:
+            "Buy natural and organic spices and herbs online. Discover msFoods’ rich flavors and premium quality.",
+        images: ["https://www.msfoods.com/og-image.jpg"], // Same image or a separate one for Twitter
+    },
+    metadataBase: new URL("https://www.msfoods.com"),
 };
 
 export default function RootLayout({
@@ -21,12 +58,12 @@ export default function RootLayout({
     return (
         <html lang="en">
             <head>
-                <link rel="icon" href="/favicon.ico" sizes="any" />
+                <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+                <link rel="canonical" href="https://www.msfoods.com" />
             </head>
             <body className={dmSans.className}>
                 <UserProvider>
                     <CartProvider>
-
                         {children}
                         <Toaster />
                     </CartProvider>
