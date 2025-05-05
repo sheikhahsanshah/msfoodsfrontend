@@ -397,7 +397,7 @@ export default function AdsPage() {
                                                         <CalendarComponent
                                                             mode="single"
                                                             selected={new Date(newAd.startDate)}
-                                                            onSelect={(date:any) => date && setNewAd({ ...newAd, startDate: date.toISOString() })}
+                                                            onSelect={(date) => date && setNewAd({ ...newAd, startDate: date.toISOString() })}
                                                             initialFocus
                                                         />
                                                     </PopoverContent>
@@ -419,7 +419,7 @@ export default function AdsPage() {
                                                         <CalendarComponent
                                                             mode="single"
                                                             selected={new Date(newAd.endDate)}
-                                                            onSelect={(date:any) => date && setNewAd({ ...newAd, endDate: date.toISOString() })}
+                                                            onSelect={(date) => date && setNewAd({ ...newAd, endDate: date.toISOString() })}
                                                             initialFocus
                                                         />
                                                     </PopoverContent>
@@ -653,7 +653,7 @@ export default function AdsPage() {
                                             <TableCell className="text-right">
                                                 <Dialog
                                                     open={isEditAdDialogOpen && currentAd?._id === ad._id}
-                                                    onOpenChange={(open:any) => {
+                                                    onOpenChange={(open) => {
                                                         setIsEditAdDialogOpen(open)
                                                         if (!open) {
                                                             setCurrentAd(null)
@@ -720,7 +720,7 @@ export default function AdsPage() {
                                                                                         <CalendarComponent
                                                                                             mode="single"
                                                                                             selected={new Date(currentAd.startDate)}
-                                                                                            onSelect={(date:any) =>
+                                                                                            onSelect={(date) =>
                                                                                                 date && setCurrentAd({ ...currentAd, startDate: date.toISOString() })
                                                                                             }
                                                                                             initialFocus
@@ -747,7 +747,7 @@ export default function AdsPage() {
                                                                                         <CalendarComponent
                                                                                             mode="single"
                                                                                             selected={new Date(currentAd.endDate)}
-                                                                                            onSelect={(date:any) =>
+                                                                                            onSelect={(date) =>
                                                                                                 date && setCurrentAd({ ...currentAd, endDate: date.toISOString() })
                                                                                             }
                                                                                             initialFocus
