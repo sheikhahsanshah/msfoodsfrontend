@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LayoutDashboard, Box, TicketPercent, Star, List, ShoppingCart, LineChart } from "lucide-react"
+import { LayoutDashboard, Box, TicketPercent, Star, List, ShoppingCart, LineChart, Home, Megaphone, User } from "lucide-react"
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
@@ -44,17 +44,28 @@ export default function AdminSidebar() {
             icon: LineChart,
             label: "Sales Analytics",
         },
-         {
+        {
             href: "/admin/users",
-            icon: LineChart,
+            icon: User,
             label: "Users Management",
         },
+        {
+            href: "/admin/ads",
+            icon: Megaphone,
+            label: "Ads",
+        },
+        {
+            href: "/",
+            icon: Home,
+            label: "Home",
+        },
+
     ]
 
     return (
         <Sidebar className="bg-white">
             <SidebarHeader className="border-b p-4">
-               
+
                 <Link href="/admin" className="flex items-center gap-2 font-semibold">
                     <LayoutDashboard className="h-5 w-5" />
                     <span>Admin Dashboard</span>
@@ -66,7 +77,7 @@ export default function AdminSidebar() {
                         const Icon = link.icon
                         return (
                             <Link
-                                key={link.href} 
+                                key={link.href}
                                 href={link.href}
                                 className={cn(
                                     "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",

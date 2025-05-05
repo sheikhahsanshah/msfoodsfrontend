@@ -42,6 +42,7 @@ export default function ContactPage() {
                 toast({
                     title: "Success",
                     description: "Email sent successfully",
+                    duration: 1000,
                 })
                 setFormData({ name: "", email: "", subject: "", message: "" })
             } else {
@@ -49,6 +50,7 @@ export default function ContactPage() {
                     title: "Error",
                     description: "Error sending email",
                     variant: "destructive",
+ duration: 1000,
                 })
             }
         } catch (error:unknown) {
@@ -56,6 +58,7 @@ export default function ContactPage() {
                 title: "Error",
                 description: "Error sending email:" + (error instanceof Error ? error.message : String(error)),
                 variant: "destructive",
+                duration: 1000,
             })
         }
     }

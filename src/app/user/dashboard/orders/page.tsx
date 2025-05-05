@@ -1,5 +1,5 @@
 "use client"
-
+import { useCallback } from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
@@ -83,43 +83,47 @@ export default function OrdersPage() {
     filterOrders(activeTab, searchQuery)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, activeTab, searchQuery])
-  useEffect(() => {
-    fetchOrders()
-  })
+    
+    
   
   // Update the fetchOrders function to use the token from the user object
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true)
-      const token = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken")
+   
 
-      const response = await fetch(`${API_URL}/api/orders/my-orders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      })
+    const fetchOrders = useCallback(async () => {
+        try {
+            setIsLoading(true)
+            const token = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken")
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders")
-      }
+            const response = await fetch(`${API_URL}/api/orders/my-orders`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                credentials: "include",
+            })
 
-      const data = await response.json()
+            if (!response.ok) {
+                throw new Error("Failed to fetch orders")
+            }
 
-      if (data.success && data.data) {
-        // Filter to only show delivered orders as per requirements
-        const deliveredOrders = data.data.filter((order: Order) => order.status === "Delivered")
-        setOrders(deliveredOrders)
-      } else {
-        throw new Error(data.message || "Failed to fetch orders")
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error)
+            const data = await response.json()
 
-    } finally {
-      setIsLoading(false)
-    }
-  }
+            if (data.success && data.data) {
+                const deliveredOrders = data.data.filter((order: Order) => order.status === "Delivered")
+                setOrders(deliveredOrders)
+            } else {
+                throw new Error(data.message || "Failed to fetch orders")
+            }
+        } catch (error) {
+            console.error("Error fetching orders:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [user])
+    
+    useEffect(() => {
+        fetchOrders()
+    }, [fetchOrders])
+
 
   const filterOrders = (status: string, query: string) => {
     let filtered = [...orders]

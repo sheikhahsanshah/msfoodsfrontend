@@ -57,6 +57,7 @@ export default function ResendVerificationPage() {
                     title: "Error",
                     description: data.message || "Request failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return
@@ -65,6 +66,7 @@ export default function ResendVerificationPage() {
             toast({
                 title: "Email Sent",
                 description: "Verification email has been resent",
+                duration: 1000,
             })
 
             router.push(`/auth/verification-sent?method=email&email=${values.identifier}`)
@@ -73,6 +75,7 @@ export default function ResendVerificationPage() {
                 variant: "destructive",
                 title: "Error",
                 description: error instanceof Error ? error.message : "An unexpected error occurred",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)
@@ -95,6 +98,7 @@ export default function ResendVerificationPage() {
                     title: "Error",
                     description: data.message || "Request failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return
@@ -103,6 +107,7 @@ export default function ResendVerificationPage() {
             toast({
                 title: "Code Sent",
                 description: "Verification code has been resent to your phone",
+                 duration: 1000,
             })
 
             router.push(`/auth/verify-phone?phone=${values.identifier}`)
@@ -111,6 +116,7 @@ export default function ResendVerificationPage() {
                 variant: "destructive",
                 title: "Error",
                 description: error instanceof Error ? error.message : "An unexpected error occurred",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)

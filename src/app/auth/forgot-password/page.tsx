@@ -56,6 +56,7 @@ export default function ForgotPasswordPage() {
                     title: "Error",
                     description: data.message || "Request failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return

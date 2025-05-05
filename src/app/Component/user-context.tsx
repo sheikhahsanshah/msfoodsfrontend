@@ -106,6 +106,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             toast({
                 title: "Login successful",
                 description: "Welcome back!",
+                duration: 1000,
             })
 
             router.push("/")
@@ -114,6 +115,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 title: "Login failed",
                 description: error instanceof Error ? error.message : "An error occurred during login",
                 variant: "destructive",
+                duration: 1000,
             })
         } finally {
             setLoading(false)
@@ -151,6 +153,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             toast({
                 title: "Registration successful",
                 description: "Your account has been created!",
+                duration: 1000,
             })
 
             router.push("/")
@@ -159,6 +162,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 title: "Registration failed",
                 description: error instanceof Error ? error.message : "An error occurred during registration",
                 variant: "destructive",
+                duration: 1000,
             })
         } finally {
             setLoading(false)
@@ -179,6 +183,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         toast({
             title: "Logged out",
             description: "You have been successfully logged out",
+            duration: 1000,
         })
 
         router.push("/")

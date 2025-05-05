@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import type React from "react";
 import { UserProvider } from "./Component/user-context";
 import { CartProvider } from "./Component/CartContext";
+import { AdProvider } from "./Component/ad-context";
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"] });
 
@@ -64,7 +65,7 @@ export default function RootLayout({
             <body className={dmSans.className}>
                 <UserProvider>
                     <CartProvider>
-                        {children}
+                        <AdProvider>{children}</AdProvider>
                         <Toaster />
                     </CartProvider>
                 </UserProvider>

@@ -99,12 +99,14 @@ export default function ReviewModal({ order, onClose }: ReviewModalProps) {
                     title: "Error",
                     description: "Failed to submit review" + errorData.message,
                     variant: "destructive",
+                    duration: 1000,
                 })
             }
 
             toast({
                 title: "Review Submitted",
                 description: `Thank you for your feedback on ${selectedProduct?.name}!`,
+                duration: 1000,
             })
             form.reset()
             setSelectedProduct(null)
@@ -113,6 +115,7 @@ export default function ReviewModal({ order, onClose }: ReviewModalProps) {
                 variant: "destructive",
                 title: "Error",
                 description: error instanceof Error ? error.message : "Failed to submit review. Please try again.",
+                duration: 1000,
             })
         }
     }

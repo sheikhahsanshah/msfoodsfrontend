@@ -158,6 +158,7 @@ export default function ProductDetail() {
                 title: "Maximum stock reached",
                 description: `Only ${product.stock} items available`,
                 variant: "destructive",
+                duration: 1000,
             })
             return
         }
@@ -190,6 +191,7 @@ export default function ProductDetail() {
                 title: "Maximum stock reached",
                 description: `Cannot add ${quantity} more items. Only ${product.stock - currentQuantity} available.`,
                 variant: "destructive",
+                duration: 1000,
             })
             return
         }
@@ -211,6 +213,7 @@ export default function ProductDetail() {
         toast({
             title: "Added to cart",
             description: `${quantity} × ${product.name} added to your cart`,
+             duration: 1000,
         })
     }
 
@@ -220,6 +223,7 @@ export default function ProductDetail() {
             toast({
                 title: "Link copied",
                 description: "Product link copied to clipboard",
+                 duration: 1000,
             })
         }
     }

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 // import { toast } from "@/components/ui/use-toast"
 import { X, Filter, Check, Tag, Package, Clock, ArrowUpDown } from "lucide-react"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com"
 
@@ -705,59 +706,65 @@ export default function AllProducts() {
             )
 
             return (
-              <div key={product._id} className="border border-gray-200 rounded-lg overflow-hidden group flex flex-col">
-                <Link href={`/user/product/${product._id}`} className="flex-grow flex flex-col">
-                  <div className="aspect-square relative">
-                    <Image
-                      src={product.images[0]?.url || "/placeholder.svg"}
-                      alt={product.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
-                    />
-                    {isOnSale && (
-                      <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold">
-                        SALE
-                      </div>
-                    )}
-                  </div>
+                <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
+                    <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
+                        {/* Image Section */}
+                        <CardHeader className="p-0 relative bg-white overflow-hidden h-58 ">
+                            <Image
+                                src={product.images[0]?.url || "/placeholder.svg"}
+                                alt={product.name}
+                                width={800}
+                                height={800}
+                                className="object-contain w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                            />
+                            {isOnSale && (
+                                <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold z-10">
+                                    SALE
+                                </div>
+                            )}
+                        </CardHeader>
 
-                  <div className="p-3 md:p-5 flex flex-col flex-grow">
-                    <div className="text-[14px] text-[#1D1D1D]">
-                      {product.priceOptions.length > 1 ? "From " : ""}
-                      {lowestPriceOption?.salePrice ? (
-                        <span>
-                          <span className="line-through text-gray-500 mr-2">
-                            Rs. {lowestPriceOption.price.toFixed(2)}
-                          </span>
-                          <span className="text-red-500">Rs. {lowestPriceOption.salePrice.toFixed(2)}</span>
-                        </span>
-                      ) : displayPrice ? (
-                        `Rs. ${displayPrice.toFixed(2)}`
-                      ) : (
-                        "Price not available"
-                      )}
-                    </div>
+                        {/* Price & Name */}
+                        <CardContent className="p-3 md:p-5 flex flex-col flex-grow border-t">
+                            <div className="text-sm text-[#1D1D1D]">
+                                {product.priceOptions.length > 1 ? "From " : ""}
+                                {lowestPriceOption?.salePrice ? (
+                                    <>
+                                        <span className="line-through text-gray-500 mr-2">
+                                            Rs. {lowestPriceOption.price.toFixed(2)}
+                                        </span>
+                                        <span className="text-red-500">
+                                            Rs. {lowestPriceOption.salePrice.toFixed(2)}
+                                        </span>
+                                    </>
+                                ) : displayPrice ? (
+                                    `Rs. ${displayPrice.toFixed(2)}`
+                                ) : (
+                                    "Price not available"
+                                )}
+                            </div>
 
-                    <div className="relative group flex-grow">
-                      <h3 className="font-semibold text-[15px] md:text-[17px] lg:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
-                        {product.name}
-                      </h3>
-                    </div>
-                  </div>
-                </Link>
+                            <h3 className="font-semibold text-[15px] md:text-[17px] lg:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
+                                {product.name}
+                            </h3>
+                        </CardContent>
+                    </Link>
 
-                {/* Buy Now Button - Fixed at Bottom */}
-                <div className="p-3 md:p-5 pt-0 mt-auto">
-                <Link href={`/user/product/${product._id}`}>
-                  <Button
-                    variant="outline"
-                    className="w-full text-sm md:text-base rounded-full border-black hover:bg-black hover:text-white"
-                  >
-                    Buy now
-                  </Button>
-                </Link>
-                </div>
-              </div>
+                    {/* CTA Button */}
+                    <CardFooter className="p-3 md:p-5 pt-0 mt-auto">
+                        <Link href={`/user/product/${product._id}`} className="w-full">
+                            <Button
+                                variant="outline"
+                                className="w-full text-sm md:text-base rounded-full border-black hover:bg-black hover:text-white"
+                            >
+                                Buy now
+                            </Button>
+                        </Link>
+                    </CardFooter>
+                </Card>
+
+
+
             )
           })}
         </div>

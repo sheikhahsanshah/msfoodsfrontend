@@ -76,6 +76,7 @@ export default function MyOrdersPage() {
                         title: "Error",
                         description: "Failed to fetch orders",
                         variant: "destructive",
+                        duration: 1000,
                     })
                 }
                 const data = await response.json()
@@ -85,6 +86,7 @@ export default function MyOrdersPage() {
                     variant: "destructive",
                     title: "Error",
                     description: "Failed to load orders. Please try again.",
+                    duration: 1000,
                 })
             } finally {
                 setLoading(false)

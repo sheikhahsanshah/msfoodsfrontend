@@ -34,6 +34,7 @@ export default function VerificationSentPage() {
                 variant: "destructive",
                 title: "Error",
                 description: "Email is missing",
+                duration: 1000,
             })
             return
         }
@@ -55,6 +56,7 @@ export default function VerificationSentPage() {
                     title: "Error",
                     description: data.message || "Failed to resend verification",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 return
             }
@@ -65,12 +67,14 @@ export default function VerificationSentPage() {
                     method === "email"
                         ? "A new verification email has been sent"
                         : "A new verification code has been sent to your phone",
+                duration: 1000,
             })
         } catch (error: unknown) {
             toast({
                 variant: "destructive",
                 title: "Error",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
+                duration: 1000,
             })
         }
     }

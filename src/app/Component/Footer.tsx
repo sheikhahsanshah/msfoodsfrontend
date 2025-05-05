@@ -11,7 +11,7 @@ const Footer = () => {
                         <Link href={'/'} className="text-2xl font-bold">msFoods</Link>
                         <div className='mt-4 space-y-2'>
                             <p className="text-sm">Email: msfoodscontact@gmail.com</p>
-                            <p className="text-sm">Phone: 0342-0411505</p>
+                            <p className="text-sm">Phone: +923420411505</p>
                             <p className="text-sm">
                                 Address: Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
                             </p>

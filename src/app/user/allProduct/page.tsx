@@ -77,6 +77,7 @@ export default function AllProductsPage() {
                     title: "Error",
                     description: "Failed to fetch categories" + data.message,
                     variant: "destructive",
+                    duration: 1000,
                 })
             }
 
@@ -87,6 +88,7 @@ export default function AllProductsPage() {
                 title: "Error",
                 description: "Error fetching categories:" + (error instanceof Error ? error.message : String(error)),
                 variant: "destructive",
+                duration: 1000,
             })
         }
     }, [toast])
@@ -104,6 +106,7 @@ export default function AllProductsPage() {
                     title: "Error",
                     description: "Failed to fetch products" + data.message,
                     variant: "destructive",
+                     duration: 1000,
                 })
             }
 
@@ -114,6 +117,7 @@ export default function AllProductsPage() {
                 title: "Error",
                 description: "Error fetching products:" + (error instanceof Error ? error.message : String(error)),
                 variant: "destructive",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)
@@ -165,6 +169,7 @@ export default function AllProductsPage() {
                 title: "Error",
                 description: "This product is out of stock",
                 variant: "destructive",
+                duration: 1000,
             })
             return
         }
@@ -177,6 +182,7 @@ export default function AllProductsPage() {
                 title: "Error",
                 description: `Cannot add more items. Maximum stock (${product.stock}) reached.`,
                 variant: "destructive",
+                duration: 1000,
             })
             return
         }
@@ -198,6 +204,7 @@ export default function AllProductsPage() {
         toast({
             title: "Success",
             description: "Added to Cart Successfully",
+            duration: 1000,
         })
 
         setTimeout(() => {
@@ -457,7 +464,8 @@ function ProductCard({ product, viewMode, handleAddToCart }: ProductCardProps) {
                         src={product.images[0]?.url || "/placeholder.svg"}
                         alt={product.name}
                         layout="fill"
-                        objectFit="cover"
+                        
+                        objectFit="contain"
                         loading="lazy"
                     />
                 </div>

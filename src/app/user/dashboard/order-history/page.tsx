@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import {
   Clock,
@@ -81,9 +81,6 @@ export default function OrderHistoryPage() {
   const [sortOrder, setSortOrder] = useState("newest")
   const { user } = useUser()
   const router = useRouter()
-  useEffect(() => {
-    fetchOrders()
-  })
   
 
   useEffect(() => {
@@ -91,38 +88,41 @@ export default function OrderHistoryPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orders, searchQuery, timeFilter, statusFilter, sortOrder])
 
-  // Update the fetchOrders function to match your API response format
-  const fetchOrders = async () => {
-    try {
-      setIsLoading(true)
-      const token = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken")
+    const fetchOrders = useCallback(async () => {
+        try {
+            setIsLoading(true)
+            const token = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken")
 
-      const response = await fetch(`${API_URL}/api/orders/my-orders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      })
+            const response = await fetch(`${API_URL}/api/orders/my-orders`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                credentials: "include",
+            })
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch order history")
-      }
+            if (!response.ok) {
+                throw new Error("Failed to fetch order history")
+            }
 
-      const data = await response.json()
+            const data = await response.json()
 
-      if (data.success && data.data) {
-        // Show all orders for order history
-        setOrders(data.data)
-      } else {
-        throw new Error(data.message || "Failed to fetch order history")
-      }
-    } catch (error) {
-      console.error("Error fetching order history:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+            if (data.success && data.data) {
+                setOrders(data.data)
+            } else {
+                throw new Error(data.message || "Failed to fetch order history")
+            }
+        } catch (error) {
+            console.error("Error fetching order history:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [user?.accessToken]);
 
+    useEffect(() => {
+        fetchOrders()
+    }, [fetchOrders]);
+
+    
   const filterAndSortOrders = () => {
     let filtered = [...orders]
 

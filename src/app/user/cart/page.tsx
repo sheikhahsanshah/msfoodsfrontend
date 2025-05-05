@@ -31,6 +31,7 @@ export default function CartPage() {
         toast({
             title: "Item removed",
             description: `${name} has been removed from your cart.`,
+            duration: 1000,
         })
     }
 
@@ -39,6 +40,7 @@ export default function CartPage() {
         toast({
             title: "Cart cleared",
             description: "All items have been removed from your cart.",
+            duration: 1000,
         })
     }
 
@@ -48,6 +50,7 @@ export default function CartPage() {
                 title: "Cart is empty",
                 description: "Please add items to your cart before checking out.",
                 variant: "destructive",
+                duration: 1000,
             })
             return
         }

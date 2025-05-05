@@ -49,6 +49,7 @@ export default function VerifyPhonePage() {
                 variant: "destructive",
                 title: "Error",
                 description: "Phone number is missing",
+                duration: 1000,
             })
             router.push("/auth/signup")
         }
@@ -82,6 +83,7 @@ export default function VerifyPhonePage() {
                     title: "Error",
                     description: data.message || "Verification failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return
@@ -90,6 +92,7 @@ export default function VerifyPhonePage() {
             toast({
                 title: "Phone Verified",
                 description: "Your phone number has been verified successfully",
+                duration: 1000,
             })
 
             router.push("/auth/login")
@@ -98,6 +101,7 @@ export default function VerifyPhonePage() {
                 variant: "destructive",
                 title: "Verification Error",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)
@@ -124,6 +128,7 @@ export default function VerifyPhonePage() {
                     title: "Error",
                     description: data.message || "Failed to resend code",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 return
             }
@@ -131,12 +136,14 @@ export default function VerifyPhonePage() {
             toast({
                 title: "Code Resent",
                 description: "A new verification code has been sent to your phone",
+                duration: 1000,
             })
         } catch (error: unknown) {
             toast({
                 variant: "destructive",
                 title: "Error",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
+                duration: 1000,
             })
         }
     }

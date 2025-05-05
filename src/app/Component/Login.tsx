@@ -68,6 +68,7 @@ export default function LoginPage() {
                     title: "Error",
                     description: result.message || "Login failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return
@@ -82,6 +83,7 @@ export default function LoginPage() {
             toast({
                 title: "Login Successful",
                 description: "You are being redirected...",
+                duration: 1000,
             })
 
             // Redirect based on user role
@@ -95,6 +97,7 @@ export default function LoginPage() {
                 variant: "destructive",
                 title: "Login Error",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)

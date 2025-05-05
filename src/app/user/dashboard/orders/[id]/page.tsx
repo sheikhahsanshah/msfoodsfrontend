@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import {
   ArrowLeft,
@@ -91,9 +91,7 @@ export default function OrderDetailsPage() {
     orderId: "",
   })
 
-  useEffect(() => {
-    fetchOrderDetails()
-  })
+  
 
   // Add function to open review dialog
   const openReviewDialog = (productId: string, productName: string, orderId: string) => {
@@ -105,36 +103,39 @@ export default function OrderDetailsPage() {
     setReviewDialogOpen(true)
   }
 
-  // Update the fetchOrderDetails function to match your API response format
-  const fetchOrderDetails = async () => {
-    try {
-      setIsLoading(true)
-      const token = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken")
+    const fetchOrderDetails = useCallback(async () => {
+        try {
+            setIsLoading(true)
+            const token = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken")
 
-      const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      })
+            const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                credentials: "include",
+            })
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch order details")
-      }
+            if (!response.ok) {
+                throw new Error("Failed to fetch order details")
+            }
 
-      const data = await response.json()
+            const data = await response.json()
 
-      if (data.success && data.data) {
-        setOrder(data.data)
-      } else {
-        throw new Error(data.message || "Failed to fetch order details")
-      }
-    } catch (error) {
-      console.error("Error fetching order details:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+            if (data.success && data.data) {
+                setOrder(data.data)
+            } else {
+                throw new Error(data.message || "Failed to fetch order details")
+            }
+        } catch (error) {
+            console.error("Error fetching order details:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [orderId, user?.accessToken]) // Add dependencies here
+
+    useEffect(() => {
+        fetchOrderDetails()
+    }, [fetchOrderDetails])
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A"

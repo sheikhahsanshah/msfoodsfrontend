@@ -13,14 +13,14 @@ const HeroSection = ({
     imageAlt = "Premium Spices and Dry Foods",
 }: HeroSectionProps) => {
     return (
-        <section className="w-full h-screen relative mb-20">
+        <section className="w-full h-[500px] relative mb-10   ">
             {/* Desktop Image */}
-            <div className="hidden sm:block w-full ">
+            <div className="hidden sm:block w-full">
                 <Image
                     src={desktopImageSrc}
                     alt={imageAlt}
-                    width={900}
-                    height={900}
+                    width={1000}
+                    height={1000}
                     className="absolute inset-0 w-full h-full "
                 />
             </div>
@@ -30,8 +30,8 @@ const HeroSection = ({
                 <Image
                     src={mobileImageSrc}
                     alt={imageAlt}
-                    width={900}
-                    height={900}
+                    width={600}
+                    height={600}
                     className="absolute inset-0 w-full h-full "
                 />
             </div>

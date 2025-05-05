@@ -35,6 +35,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ArrowLeft, Home } from 'lucide-react';
+import { MSFoodsAd } from "./ms-foods-ad"
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
@@ -480,7 +482,7 @@ const Header = () => {
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center justify-between">
                         {/* Mobile menu button */}
-                        <button className="lg:hidden text-black" onClick={toggleMenu} aria-label="Toggle menu">
+                        <button className="lg:hidden text-black " onClick={toggleMenu} aria-label="Toggle menu">
                             <Menu className="h-6 w-6" />
                         </button>
 
@@ -566,8 +568,6 @@ const Header = () => {
                             </div>
                         </div>
 
-                        {/* Mobile search bar */}
-                        <div className="flex-1 lg:hidden"></div>
 
                         {/* Account and cart buttons */}
                         <div className="hidden lg:flex items-center space-x-4">
@@ -648,21 +648,35 @@ const Header = () => {
             </div>
 
             {/* Info bar - mobile */}
-            <div className="lg:hidden bg-gray-50 py-3 px-4 flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    <Truck className="h-5 w-5" />
+            {/* Info bar - mobile */}
+            <div className="lg:hidden  rounded-md py-2 px-4 flex  sm:flex-row items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4 shadow-sm">
+                <div className="flex items-center space-x-3">
+                    <Clock className="h-5 w-5 text-yellow-600" />
                     <div>
-                        <p className="text-xs font-medium">Minimum Order Amount</p>
-                        <p className="text-sm font-bold">Rs 3,000</p>
+                        <p className="text-xs text-gray-600">Delivery Hours</p>
+                        <p className="text-base font-semibold text-yellow-800">10:00 AM – 6:00 PM</p>
                     </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5" />
+                <div className="flex items-center justify-end space-x-3">
+                    <Truck className="h-5 w-5 text-yellow-600" />
                     <div>
-                        <p className="text-xs font-medium">Delivery Timings</p>
-                        <p className="text-sm font-bold">10am to 6pm</p>
+                        <p className="text-xs text-gray-600">Minimum Order</p>
+                        <p className="text-base font-semibold text-yellow-800">Rs 3,000</p>
                     </div>
                 </div>
+            </div>
+
+            <MSFoodsAd location="header" className="" />
+            
+            <div className="lg:hidden px-4 py-2 bg-white border-b flex items-center justify-between">
+                <button onClick={() => router.back()} className="flex items-center space-x-1">
+                    <ArrowLeft className="h-5 w-5 text-gray-700" />
+                    <span className="text-sm text-gray-700">Back</span>
+                </button>
+                <button onClick={() => router.push('/')} className="flex items-center space-x-1">
+                    <Home className="h-5 w-5 text-gray-700" />
+                    <span className="text-sm text-gray-700">Home</span>
+                </button>
             </div>
 
             {/* Mobile search bar - below navbar */}
@@ -727,6 +741,8 @@ const Header = () => {
                     )}
                 </div>
             </div>
+            
+          
 
             {/* Mobile menu */}
             <AnimatePresence>
@@ -745,7 +761,7 @@ const Header = () => {
                             </button>
                         </div>
 
-                        <div className="p-4 bg-gray-50">
+                        {/* <div className="p-4 bg-gray-50">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                     <Truck className="h-5 w-5" />
@@ -762,7 +778,7 @@ const Header = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         <nav className="p-0">
                             {navLinks.map((link) => (

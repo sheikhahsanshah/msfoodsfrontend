@@ -23,6 +23,10 @@ import {
     ArrowUpDown,
     ChevronUp,
     ChevronDown,
+    MessageSquare,
+    CheckCircle2,
+    Clock,
+    Send,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,7 +40,7 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
     DropdownMenu,
@@ -50,6 +54,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
     BarChart,
     Bar,
@@ -86,6 +92,8 @@ interface User {
     orders?: Order[]
     orderCount?: number
     totalSpent?: number
+    hasRepliedOnWhatsApp?: boolean
+    lastWhatsAppReply?: string
 }
 
 interface Address {
@@ -115,6 +123,12 @@ interface Pagination {
     pages: number
     page: number
     limit: number
+}
+
+interface WhatsAppMessageResult {
+    success: boolean
+    totalUsers: number
+    results: { userId: string; status: string }[]
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
@@ -149,6 +163,27 @@ export default function AdminUsersPage() {
     const [activeTab, setActiveTab] = useState("users")
     // In the AdminUsersPage component, add a new state for sorting
     const [sortOption, setSortOption] = useState("-createdAt")
+
+    // WhatsApp messaging states
+    const [whatsAppUsers, setWhatsAppUsers] = useState<User[]>([])
+    const [whatsAppLoading, setWhatsAppLoading] = useState(false)
+    const [whatsAppFilters, setWhatsAppFilters] = useState({
+        search: "",
+        timeFrame: "all", // all, 24h, 48h, 7d
+    })
+    const [whatsAppSort, setWhatsAppSort] = useState("lastReply") // lastReply, name
+    const [selectedWhatsAppUsers, setSelectedWhatsAppUsers] = useState<string[]>([])
+    const [selectAllWhatsAppUsers, setSelectAllWhatsAppUsers] = useState(false)
+    const [messageText, setMessageText] = useState("")
+    const [sendingMessage, setSendingMessage] = useState(false)
+    const [showMessageResult, setShowMessageResult] = useState(false)
+    const [messageResult, setMessageResult] = useState<WhatsAppMessageResult | null>(null)
+    const [whatsAppPagination, setWhatsAppPagination] = useState({
+        total: 0,
+        pages: 0,
+        page: 1,
+        limit: 10,
+    })
 
     const { toast } = useToast()
 
@@ -214,12 +249,105 @@ export default function AdminUsersPage() {
         }
     }, [toast])
 
+    // Fetch WhatsApp users
+    const fetchWhatsAppUsers = useCallback(async () => {
+        setWhatsAppLoading(true)
+        try {
+            const queryParams = new URLSearchParams({
+                page: whatsAppPagination.page.toString(),
+                limit: whatsAppPagination.limit.toString(),
+                sort:
+                    whatsAppSort === "lastReply"
+                        ? "lastWhatsAppReply"
+                        : whatsAppSort === "-lastReply"
+                            ? "-lastWhatsAppReply"
+                            : whatsAppSort,
+                hasRepliedOnWhatsApp: "true",
+            })
+
+            if (whatsAppFilters.search) queryParams.append("search", whatsAppFilters.search)
+
+            // Add time frame filter
+            if (whatsAppFilters.timeFrame !== "all") {
+                const now = new Date()
+                const timeAgo = new Date()
+
+                switch (whatsAppFilters.timeFrame) {
+                    case "24h":
+                        timeAgo.setHours(now.getHours() - 24)
+                        break
+                    case "48h":
+                        timeAgo.setHours(now.getHours() - 48)
+                        break
+                    case "7d":
+                        timeAgo.setDate(now.getDate() - 7)
+                        break
+                }
+
+                queryParams.append("lastReplyAfter", timeAgo.toISOString())
+            }
+
+            // Use the main endpoint instead of /whatsapp
+            const response = await authFetch(`${API_URL}/api/adminUser?${queryParams.toString()}`)
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch WhatsApp users")
+            }
+
+            const data = await response.json()
+
+            // Filter out users without phone numbers
+            const validUsers = (data.data?.users || []).filter((user: { phone: string }) => user.phone && user.phone.trim() !== "")
+
+            setWhatsAppUsers(validUsers)
+            setWhatsAppPagination(
+                data.data?.pagination || {
+                    total: 0,
+                    pages: 0,
+                    page: 1,
+                    limit: 10,
+                },
+            )
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to fetch WhatsApp users",
+            })
+        } finally {
+            setWhatsAppLoading(false)
+        }
+    }, [whatsAppPagination.page, whatsAppPagination.limit, whatsAppFilters, whatsAppSort, toast])
+
     useEffect(() => {
         fetchUsers()
         if (activeTab === "statistics") {
             fetchUserStats()
         }
-    }, [fetchUsers, fetchUserStats, activeTab])
+        if (activeTab === "whatsapp") {
+            fetchWhatsAppUsers()
+        }
+    }, [fetchUsers, fetchUserStats, fetchWhatsAppUsers, activeTab])
+
+    // Handle select all WhatsApp users
+    useEffect(() => {
+        if (selectAllWhatsAppUsers) {
+            const validUserIds = whatsAppUsers
+                .filter((user) => user.phone && user.phone.trim() !== "")
+                .map((user) => user._id)
+            setSelectedWhatsAppUsers(validUserIds)
+
+            if (validUserIds.length < whatsAppUsers.length) {
+                toast({
+                    variant: "destructive",
+                    title: "Warning",
+                    description: `${whatsAppUsers.length - validUserIds.length} users were excluded because they don't have valid phone numbers`,
+                })
+            }
+        } else {
+            setSelectedWhatsAppUsers([])
+        }
+    }, [selectAllWhatsAppUsers, whatsAppUsers, toast])
 
     const handlePageChange = (newPage: number) => {
         setPagination((prev) => ({ ...prev, page: newPage }))
@@ -379,6 +507,156 @@ export default function AdminUsersPage() {
         setPagination((prev) => ({ ...prev, page: 1 }))
     }
 
+    // WhatsApp messaging handlers
+    const handleWhatsAppFilterChange = (key: string, value: string) => {
+        setWhatsAppFilters((prev) => ({ ...prev, [key]: value }))
+        setWhatsAppPagination((prev) => ({ ...prev, page: 1 }))
+    }
+
+    const handleWhatsAppSortChange = (value: string) => {
+        // Map frontend sort values to backend field names
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const sortMapping: Record<string, string> = {
+            lastReply: "lastWhatsAppReply",
+            "-lastReply": "-lastWhatsAppReply",
+        }
+
+        setWhatsAppSort(value)
+        setWhatsAppPagination((prev) => ({ ...prev, page: 1 }))
+    }
+
+    const handleWhatsAppSearch = (e: React.FormEvent) => {
+        e.preventDefault()
+        fetchWhatsAppUsers()
+    }
+
+    const handleWhatsAppPageChange = (newPage: number) => {
+        setWhatsAppPagination((prev) => ({ ...prev, page: newPage }))
+    }
+
+    const handleWhatsAppLimitChange = (newLimit: string) => {
+        setWhatsAppPagination((prev) => ({ ...prev, limit: Number.parseInt(newLimit), page: 1 }))
+    }
+
+    // Update the toggleUserSelection function to validate phone number
+    const toggleUserSelection = (userId: string) => {
+        const user = whatsAppUsers.find((u) => u._id === userId)
+
+        if (!user || !user.phone || user.phone.trim() === "") {
+            toast({
+                variant: "destructive",
+                title: "Invalid Selection",
+                description: "User must have a valid phone number to receive WhatsApp messages",
+            })
+            return
+        }
+
+        setSelectedWhatsAppUsers((prev) => {
+            if (prev.includes(userId)) {
+                return prev.filter((id) => id !== userId)
+            } else {
+                return [...prev, userId]
+            }
+        })
+    }
+
+    const resetWhatsAppFilters = () => {
+        setWhatsAppFilters({
+            search: "",
+            timeFrame: "all",
+        })
+        setWhatsAppSort("lastReply")
+        setWhatsAppPagination((prev) => ({ ...prev, page: 1 }))
+    }
+
+    // Update the sendWhatsAppMessage function with better validation
+    const sendWhatsAppMessage = async () => {
+        // Validate message text
+        if (!messageText.trim()) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please enter a message to send",
+            })
+            return
+        }
+
+        // Check message length
+        if (messageText.length > 1000) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Message is too long. Please limit to 1000 characters.",
+            })
+            return
+        }
+
+        // Validate user selection
+        if (selectedWhatsAppUsers.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please select at least one user",
+            })
+            return
+        }
+
+        // Validate that all selected users have phone numbers
+        const selectedUsers = whatsAppUsers.filter((user) => selectedWhatsAppUsers.includes(user._id))
+        const invalidUsers = selectedUsers.filter((user) => !user.phone || user.phone.trim() === "")
+
+        if (invalidUsers.length > 0) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: `${invalidUsers.length} selected users don't have valid phone numbers`,
+            })
+            return
+        }
+
+        setSendingMessage(true)
+        try {
+            const response = await fetch(`${API_URL}/api/webhook/marketing`, {
+                method: "POST",
+                headers: {
+                    ...createAuthHeaders(),
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    message: messageText,
+                    userIds: selectedWhatsAppUsers,
+                }),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.message || "Failed to send WhatsApp message")
+            }
+
+            const result = await response.json()
+            setMessageResult(result)
+            setShowMessageResult(true)
+
+            toast({
+                title: "Success",
+                description: `Message sent to ${result.totalUsers} users`,
+            })
+
+            // Reset form
+            setMessageText("")
+            setSelectedWhatsAppUsers([])
+            setSelectAllWhatsAppUsers(false)
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to send WhatsApp message",
+            })
+        } finally {
+            setSendingMessage(false)
+        }
+    }
+
     return (
         <div className="container mx-auto py-6">
             <h1 className="text-3xl font-bold mb-6">User Management</h1>
@@ -388,6 +666,7 @@ export default function AdminUsersPage() {
                     <TabsTrigger value="users">Users List</TabsTrigger>
                     <TabsTrigger value="statistics">User Statistics</TabsTrigger>
                     <TabsTrigger value="signup-methods">Signup Methods</TabsTrigger>
+                    <TabsTrigger value="whatsapp">WhatsApp Messaging</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="users">
@@ -773,6 +1052,297 @@ export default function AdminUsersPage() {
                 <TabsContent value="signup-methods">
                     <SignupMethodStats stats={userStats} />
                 </TabsContent>
+
+                {/* WhatsApp Messaging Tab */}
+                <TabsContent value="whatsapp">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <CardTitle>WhatsApp Messaging</CardTitle>
+                                    <CardDescription>Send messages to users who have replied on WhatsApp</CardDescription>
+                                </div>
+                                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            resetWhatsAppFilters()
+                                            fetchWhatsAppUsers()
+                                        }}
+                                    >
+                                        <RefreshCw className="h-4 w-4 mr-2" />
+                                        Reset Filters
+                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" className="ml-auto shrink-0">
+                                                <ArrowUpDown className="w-4 h-4 mr-2" />
+                                                Sort by
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-[220px]" align="end">
+                                            <DropdownMenuRadioGroup value={whatsAppSort} onValueChange={handleWhatsAppSortChange}>
+                                                <DropdownMenuRadioItem value="lastReply">Most Recent Reply</DropdownMenuRadioItem>
+                                                <DropdownMenuRadioItem value="-lastReply">Oldest Reply</DropdownMenuRadioItem>
+                                                <DropdownMenuRadioItem value="name">Name (A-Z)</DropdownMenuRadioItem>
+                                                <DropdownMenuRadioItem value="-name">Name (Z-A)</DropdownMenuRadioItem>
+                                            </DropdownMenuRadioGroup>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <form onSubmit={handleWhatsAppSearch} className="flex flex-col md:flex-row gap-4">
+                                        <div className="flex-1">
+                                            <Input
+                                                placeholder="Search by name, email or phone..."
+                                                value={whatsAppFilters.search}
+                                                onChange={(e) => handleWhatsAppFilterChange("search", e.target.value)}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                        <Button type="submit">
+                                            <Search className="h-4 w-4 mr-2" />
+                                            Search
+                                        </Button>
+                                    </form>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium mb-1 block">Time Frame</label>
+                                    <Select
+                                        value={whatsAppFilters.timeFrame}
+                                        onValueChange={(value) => handleWhatsAppFilterChange("timeFrame", value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Time" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Time</SelectItem>
+                                            <SelectItem value="24h">Last 24 Hours</SelectItem>
+                                            <SelectItem value="48h">Last 48 Hours</SelectItem>
+                                            <SelectItem value="7d">Last 7 Days</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            {/* Alert for users without WhatsApp replies */}
+                            {!whatsAppLoading && whatsAppUsers.length === 0 && (
+                                <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-4 mb-6">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path
+                                                    fillRule="evenodd"
+                                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                    clipRule="evenodd"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <h3 className="text-sm font-medium">No WhatsApp users found</h3>
+                                            <div className="mt-2 text-sm">
+                                                <p>
+                                                    No users have replied to WhatsApp messages yet. Users will appear here once they reply to a
+                                                    WhatsApp message.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[50px]">
+                                                <Checkbox
+                                                    checked={selectAllWhatsAppUsers}
+                                                    onCheckedChange={(checked) => {
+                                                        setSelectAllWhatsAppUsers(!!checked)
+                                                    }}
+                                                    aria-label="Select all users"
+                                                    disabled={whatsAppUsers.length === 0}
+                                                />
+                                            </TableHead>
+                                            <TableHead>Name</TableHead>
+                                            <TableHead>Contact</TableHead>
+                                            <TableHead>WhatsApp Status</TableHead>
+                                            <TableHead>Last Reply</TableHead>
+                                            <TableHead>Actions</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {whatsAppLoading ? (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="text-center py-10">
+                                                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : whatsAppUsers.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                                                    No WhatsApp users found
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            whatsAppUsers.map((user) => (
+                                                <TableRow key={user._id} className={!user.phone || user.phone.trim() === "" ? "bg-red-50" : ""}>
+                                                    <TableCell>
+                                                        <Checkbox
+                                                            checked={selectedWhatsAppUsers.includes(user._id)}
+                                                            onCheckedChange={() => toggleUserSelection(user._id)}
+                                                            aria-label={`Select ${user.name}`}
+                                                            disabled={!user.phone || user.phone.trim() === ""}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className="font-medium">{user.name}</TableCell>
+                                                    <TableCell>
+                                                        {user.phone ? (
+                                                            <div className="font-medium">{user.phone}</div>
+                                                        ) : (
+                                                            <div className="text-red-500 text-xs font-medium">No phone number</div>
+                                                        )}
+                                                        {user.email && <div className="text-muted-foreground text-xs">{user.email}</div>}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {user.hasRepliedOnWhatsApp ? (
+                                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                                                <CheckCircle2 className="h-3 w-3 mr-1" />
+                                                                Replied
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline">Not Replied</Badge>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {user.lastWhatsAppReply ? (
+                                                            <div className="flex items-center">
+                                                                <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
+                                                                {new Date(user.lastWhatsAppReply).toLocaleString()}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-muted-foreground">Never</span>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button variant="ghost" size="sm" onClick={() => handleViewUser(user._id)}>
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            View
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* Pagination */}
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-muted-foreground">
+                                        Showing {whatsAppUsers.length} of {whatsAppPagination.total} users
+                                    </span>
+                                    <Select value={whatsAppPagination.limit.toString()} onValueChange={handleWhatsAppLimitChange}>
+                                        <SelectTrigger className="w-[80px]">
+                                            <SelectValue placeholder="10" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleWhatsAppPageChange(whatsAppPagination.page - 1)}
+                                        disabled={whatsAppPagination.page <= 1}
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <span className="text-sm">
+                                        Page {whatsAppPagination.page} of {whatsAppPagination.pages || 1}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleWhatsAppPageChange(whatsAppPagination.page + 1)}
+                                        disabled={whatsAppPagination.page >= whatsAppPagination.pages}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Message Composer */}
+                            <Card className="mt-6">
+                                <CardHeader>
+                                    <CardTitle>Send WhatsApp Message</CardTitle>
+                                    <CardDescription>
+                                        Compose a message to send to selected users ({selectedWhatsAppUsers.length} selected)
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Textarea
+                                        placeholder="Type your message here..."
+                                        className="min-h-[120px]"
+                                        value={messageText}
+                                        onChange={(e) => setMessageText(e.target.value)}
+                                    />
+                                    {messageText.length > 0 && (
+                                        <div className="flex justify-between mt-2 text-sm">
+                                            <span className={messageText.length > 1000 ? "text-red-500" : "text-muted-foreground"}>
+                                                {messageText.length}/1000 characters
+                                            </span>
+                                            {messageText.length > 1000 && <span className="text-red-500">Message is too long</span>}
+                                        </div>
+                                    )}
+                                </CardContent>
+                                <CardFooter className="flex justify-between">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setMessageText("")
+                                            setSelectedWhatsAppUsers([])
+                                            setSelectAllWhatsAppUsers(false)
+                                        }}
+                                    >
+                                        Clear
+                                    </Button>
+                                    <Button
+                                        onClick={sendWhatsAppMessage}
+                                        disabled={
+                                            sendingMessage ||
+                                            selectedWhatsAppUsers.length === 0 ||
+                                            !messageText.trim() ||
+                                            messageText.length > 1000
+                                        }
+                                    >
+                                        {sendingMessage ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="mr-2 h-4 w-4" /> Send Message
+                                            </>
+                                        )}
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
             </Tabs>
 
             {/* User Details Dialog */}
@@ -915,6 +1485,62 @@ export default function AdminUsersPage() {
                                 "Delete User"
                             )}
                         </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Message Result Dialog */}
+            <Dialog
+                open={showMessageResult}
+                onOpenChange={(open) => {
+                    setShowMessageResult(open)
+                    if (!open) setMessageResult(null)
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Message Sent</DialogTitle>
+                        <DialogDescription>Your message has been sent to the selected users</DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        {messageResult && (
+                            <div>
+                                <p className="mb-2">
+                                    <span className="font-medium">Total Recipients:</span> {messageResult.totalUsers}
+                                </p>
+                                <div className="border rounded-md p-2 max-h-[200px] overflow-y-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>User</TableHead>
+                                                <TableHead>Status</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {messageResult.results.map((result, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{result.userId}</TableCell>
+                                                    <TableCell>
+                                                        {result.status === "success" ? (
+                                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                                                Success
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                                                Failed
+                                                            </Badge>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setShowMessageResult(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -1086,6 +1712,29 @@ function UserDetails({ user }: { user: User }) {
                                     <p>{new Date(user.createdAt).toLocaleDateString()}</p>
                                 </div>
                             </div>
+
+                            {user.hasRepliedOnWhatsApp !== undefined && (
+                                <div className="flex items-start gap-2">
+                                    <MessageSquare className="h-5 w-5 text-muted-foreground mt-0.5" />
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">WhatsApp Status</h3>
+                                        {user.hasRepliedOnWhatsApp ? (
+                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 mt-1">
+                                                Has Replied
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="mt-1">
+                                                No Reply
+                                            </Badge>
+                                        )}
+                                        {user.lastWhatsAppReply && (
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                Last reply: {new Date(user.lastWhatsAppReply).toLocaleString()}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -1528,4 +2177,3 @@ function SignupMethodStats({ stats }: { stats: UserStats | null }) {
         </Card>
     )
 }
-

@@ -48,6 +48,7 @@
                         variant: "destructive",
                         title: "Error",
                         description: `${method === "email" ? "Email" : "Phone number"} is missing`,
+                        duration: 1000,
                     })
                     return
                 }

@@ -39,6 +39,7 @@ export default function VerifyEmailPage() {
                     toast({
                         title: "Email Verified",
                         description: "Your email has been verified successfully",
+                        duration: 1000,
                     })
                 }
             } catch  {

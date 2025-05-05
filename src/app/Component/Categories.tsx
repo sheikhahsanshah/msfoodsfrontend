@@ -1,126 +1,245 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import type React from "react"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com";
+import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
+import { ArrowRight } from "lucide-react"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com"
 
 interface Category {
-  _id: string;
-  name: string;
-  images: { public_id: string; url: string }[];
-  slug: string;
+    _id: string
+    name: string
+    images: { public_id: string; url: string }[]
+    description?: string
 }
 
 // Pastel colors matching the image
 const pastelColors = [
-    "bg-[#FAD2E1] text-[#333333]", // Soft Blush Pink
-    "bg-[#B5EAD7] text-[#333333]", // Mint Green
-    "bg-[#FFDAC1] text-[#333333]", // Peach
-    "bg-[#C7CEEA] text-[#333333]", // Periwinkle
-    "bg-[#A2D2FF] text-[#333333]", // Baby Blue
-    "bg-[#FFF5BA] text-[#333333]", // Pastel Yellow
-];
+    "#FAD2E1", // Soft Blush Pink
+    "#B5EAD7", // Mint Green
+    "#FFDAC1", // Peach
+    "#C7CEEA", // Periwinkle
+    "#A2D2FF", // Baby Blue
+    "#FFF5BA", // Pastel Yellow
+]
 
+export default function CreativeCategoryShowcase() {
+    const [categories, setCategories] = useState<Category[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [activeIndex, setActiveIndex] = useState(0)
+    const [isDragging, setIsDragging] = useState(false)
+    const [startY, setStartY] = useState(0)
+    const containerRef = useRef<HTMLDivElement>(null)
 
-export default function Categories() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    useEffect(() => {
+        fetchCategories()
+    }, [])
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+    const fetchCategories = async () => {
+        setIsLoading(true)
+        try {
+            const response = await fetch(`${API_URL}/api/categories`, {
+                credentials: "include",
+            })
+            const data = await response.json()
 
-  const fetchCategories = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/categories`, {
-        credentials: "include",
-      });
-      const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to fetch categories")
+            }
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch categories");
-      }
-
-      setCategories(data);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      setError(
-        error instanceof Error ? error.message : "An unknown error occurred"
-      );
-    } finally {
-      setIsLoading(false);
+            setCategories(data)
+        } catch (error) {
+            console.error("Error fetching categories:", error)
+            setError(error instanceof Error ? error.message : "An unknown error occurred")
+        } finally {
+            setIsLoading(false)
+        }
     }
-  };
 
-  if (isLoading) {
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setIsDragging(true)
+        setStartY(e.touches[0].clientY)
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (!isDragging) return
+
+        const currentY = e.touches[0].clientY
+        const diff = startY - currentY
+
+        if (Math.abs(diff) > 30) {
+            if (diff > 0 && activeIndex < categories.length - 1) {
+                setActiveIndex(activeIndex + 1)
+            } else if (diff < 0 && activeIndex > 0) {
+                setActiveIndex(activeIndex - 1)
+            }
+            setIsDragging(false)
+        }
+    }
+
+    const handleTouchEnd = () => {
+        setIsDragging(false)
+    }
+
+    const handleWheel = (e: React.WheelEvent) => {
+        if (e.deltaY > 0 && activeIndex < categories.length - 1) {
+            setActiveIndex(activeIndex + 1)
+        } else if (e.deltaY < 0 && activeIndex > 0) {
+            setActiveIndex(activeIndex - 1)
+        }
+    }
+
+    const selectCategory = (index: number) => {
+        setActiveIndex(index)
+    }
+
+    if (isLoading) {
+        return (
+            <div className="container mx-auto px-4 py-6 text-center">
+                <div className="animate-pulse text-lg">Loading categories...</div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return <div className="text-center text-red-500">{error}</div>
+    }
+
+    if (categories.length === 0) {
+        return (
+            <div className="container mx-auto px-4 py-6 text-center">
+                <h2 className="text-2xl font-bold mb-4">No Categories Available</h2>
+                <p className="text-black">Check back later for more categories!</p>
+            </div>
+        )
+    }
+
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <div className="animate-pulse text-lg">Loading categories...</div>
-      </div>
-    );
-  }
+        <div className="container mx-auto px-4 py-4 ">
+            <h2 className="text-2xl font-bold mb-8">Categories</h2>
 
-  if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
-  }
-
-  if (categories.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h2 className="text-2xl font-bold mb-4">No Categories Available</h2>
-        <p className="text-black">Check back later for more categories!</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Categories</h2>
-      </div>
-
-      <div className="grid grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] gap-6 justify-center">
-  {categories.map((category, index) => {
-    const bgColor = pastelColors[index % pastelColors.length];
-
-    return (
-      <div
-        key={category._id}
-        className="overflow-hidden rounded-2xl shadow-md transition-transform duration-300 ease-in-out hover:scale-102"
-      >
-        <Link href={`/products/${category.name}`} className="block">
-          {/* Image container - takes up about 70% of the card height */}
-          <div className="relative w-full aspect-[4/3]">
-            <Image
-              src={category.images[0]?.url || "/placeholder.svg"}
-              alt={category.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-
-          {/* Content container with colored background */}
-          <div className={`${bgColor} p-6 flex flex-col items-center`}>
-            <h3 className="font-bold text-4xl mb-4">{category.name}</h3>
-
-            <Button
-              variant="outline"
-              className={`w-3/4 mt-3 rounded-full border-black hover:bg-black hover:text-white ${bgColor} py-3 text-lg`}
+            <div
+                className="relative h-[60vh] overflow-hidden"
+                ref={containerRef}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onWheel={handleWheel}
             >
-              Show More
-            </Button>
-          </div>
-        </Link>
-      </div>
-    );
-  })}
-</div>
+                {/* Indicator lines */}
+                {/* <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 flex flex-col items-center pointer-events-none">
+          <div className="w-full h-[2px] bg-gray-200 mb-24"></div>
+          <div className="w-full h-[2px] bg-gray-200 mt-24"></div>
+        </div> */}
 
-    </div>
-  );
+                {/* Category wheel */}
+                <div className="absolute left-0 right-0 top-[30%]">
+                    {categories.map((category, index) => {
+                        const distance = index - activeIndex
+                        const yPosition = distance * 120
+                        const scale = 1 - Math.min(0.3, Math.abs(distance) * 0.15)
+                        const opacity = 1 - Math.min(0.7, Math.abs(distance) * 0.25)
+                        const zIndex = 10 - Math.abs(distance)
+                        const bgColor = pastelColors[index % pastelColors.length]
+                        const isActive = index === activeIndex
+
+                        return (
+                            <motion.div
+                                key={category._id}
+                                className="absolute left-0 right-0 flex justify-center items-center cursor-pointer"
+                                style={{ zIndex }}
+                                initial={{ y: yPosition, scale, opacity }}
+                                animate={{ y: yPosition, scale, opacity }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                onClick={() => selectCategory(index)}
+                            >
+                                <div
+                                    className={`flex items-center w-full max-w-sm p-4 rounded-2xl transition-all duration-300 ${isActive ? "shadow-lg" : ""}`}
+                                    style={{
+                                        backgroundColor: isActive ? bgColor + "40" : "transparent",
+                                    }}
+                                >
+                                    <div className="relative w-20 h-20 rounded-full flex-shrink-0 mr-4 overflow-hidden">
+                                        <Image
+                                            src={category.images[0]?.url || "/placeholder.svg"}
+                                            alt={category.name}
+                                            fill
+                                            className="object-cover"
+                                        />
+
+                                        {/* Decorative elements */}
+                                        <motion.div
+                                            className="absolute inset-0 bg-gradient-to-tr"
+                                            style={{ backgroundColor: bgColor + "40" }}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: isActive ? 0.3 : 0 }}
+                                        />
+                                    </div>
+
+                                    <div className="flex-grow">
+                                        <h3 className="font-bold text-xl mb-1">{category.name}</h3>
+
+                                        <AnimatePresence>
+                                            {isActive && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: "auto" }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    transition={{ duration: 0.2 }}
+                                                >
+                                                    <Link href={`/products/${category.name}`}>
+                                                        <motion.button
+                                                            className="flex items-center gap-2 text-sm font-medium mt-1 px-4 py-2 rounded-full"
+                                                            style={{ backgroundColor: bgColor }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                        >
+                                                            Explore <ArrowRight size={14} />
+                                                        </motion.button>
+                                                    </Link>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )
+                    })}
+                </div>
+
+                {/* Swipe indicator */}
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center text-sm text-gray-500 pointer-events-none">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+                        className="flex flex-col items-center"
+                    >
+                        <div className="text-center mb-1">Swipe to explore</div>
+                        <div className="flex flex-col items-center gap-1">
+                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                        </div>
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* Dots indicator */}
+            <div className="flex justify-center mt-6 gap-2">
+                {categories.map((_, index) => (
+                    <button
+                        key={`dot-${index}`}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${index === activeIndex ? "w-6 bg-gray-800" : "bg-gray-300"
+                            }`}
+                        onClick={() => selectCategory(index)}
+                    />
+                ))}
+            </div>
+        </div>
+    )
 }

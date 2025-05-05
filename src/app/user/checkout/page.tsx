@@ -75,6 +75,7 @@ export default function CheckoutPage() {
                 title: "Error",
                 description: "Failed to fetch shipping cost. Using default value.",
                 variant: "destructive",
+                 duration: 1000,
             })
         }
     }, [toast])
@@ -106,6 +107,7 @@ export default function CheckoutPage() {
             toast({
                 title: "Please enter a coupon code",
                 variant: "destructive",
+                duration: 1000,
             })
             return
         }
@@ -116,6 +118,7 @@ export default function CheckoutPage() {
                 title: "Authentication Required",
                 description: "Please log in to apply a coupon code",
                 variant: "destructive",
+                 duration: 1000,
             })
             return
         }
@@ -148,6 +151,7 @@ export default function CheckoutPage() {
                 toast({
                     title: "Coupon applied!",
                     description: `You saved Rs.${data.data.discount.toLocaleString()}`,
+                     duration: 1000,
                 })
             } else {
                 throw new Error(data.message || "Invalid coupon code")
@@ -157,6 +161,7 @@ export default function CheckoutPage() {
                 title: "Coupon Error",
                 description: error instanceof Error ? error.message : "Failed to apply coupon",
                 variant: "destructive",
+                duration: 1000,
             })
         } finally {
             setIsSubmitting(false)
@@ -238,6 +243,7 @@ export default function CheckoutPage() {
                 title: "Order Error",
                 description: error instanceof Error ? error.message : "Failed to place order",
                 variant: "destructive",
+                duration: 1000,
             })
         } finally {
             setIsSubmitting(false)
@@ -251,6 +257,7 @@ export default function CheckoutPage() {
         toast({
             title: "Coupon removed",
             description: "The coupon has been removed from your order.",
+            duration: 1000,
         })
     }
 
@@ -273,7 +280,7 @@ export default function CheckoutPage() {
         <div className="bg-white">
             <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
                 <div className="mb-8">
-                    <Link href="/cart" className="text-purple-600 hover:text-purple-800 flex items-center">
+                    <Link href="/user/cart" className="text-purple-600 hover:text-purple-800 flex items-center">
                         <ArrowLeft className="h-4 w-4 mr-1" />
                         Back to cart
                     </Link>

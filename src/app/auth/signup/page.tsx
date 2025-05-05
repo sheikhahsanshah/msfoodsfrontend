@@ -75,6 +75,7 @@ export default function SignupPage() {
                     title: "Error",
                     description: data.message || "Signup failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return
@@ -83,6 +84,7 @@ export default function SignupPage() {
             toast({
                 title: "Verification Email Sent",
                 description: "Please check your email to verify your account",
+                 duration: 1000,
             })
 
             router.push("/auth/verification-sent?method=email")
@@ -91,6 +93,7 @@ export default function SignupPage() {
                 variant: "destructive",
                 title: "Signup Error",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)
@@ -115,6 +118,7 @@ export default function SignupPage() {
                     title: "Error",
                     description: data.message || "Signup failed",
                     variant: "destructive",
+                    duration: 1000,
                 })
                 setIsLoading(false)
                 return
@@ -123,6 +127,7 @@ export default function SignupPage() {
             toast({
                 title: "Verification Code Sent",
                 description: "Please check your phone for the verification code",
+                 duration: 1000,
             })
 
             router.push(`/auth/verify-phone?phone=${values.phone}`)
@@ -131,6 +136,7 @@ export default function SignupPage() {
                 variant: "destructive",
                 title: "Signup Error",
                 description: error instanceof Error ? error.message : "An unknown error occurred",
+                duration: 1000,
             })
         } finally {
             setIsLoading(false)
