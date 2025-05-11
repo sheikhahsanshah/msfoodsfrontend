@@ -122,6 +122,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 const updatedUser = { ...meData.data, accessToken: newAccessToken };
                 setUser(updatedUser);
                 localStorage.setItem("user", JSON.stringify(updatedUser));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error("Session restore failed:", error.message);
                 // Only logout on actual auth errors
