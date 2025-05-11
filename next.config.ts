@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
     reactStrictMode: false,
     images: {
-        domains: ['res.cloudinary.com', 'https://res.cloudinary.com/'],
+        domains: ['res.cloudinary.com'], // ✅ Remove full URL
     },
     async redirects() {
         return [
@@ -17,6 +17,19 @@ const nextConfig: NextConfig = {
                 ],
                 destination: 'https://msfoods.pk/:path*',
                 permanent: true,
+            },
+        ];
+    },
+    async headers() {
+        return [
+            {
+                source: "/(.*)",
+                headers: [
+                    {
+                        key: "Cache-Control",
+                        value: "no-store, max-age=0", // ✅ Prevent caching issues in production
+                    },
+                ],
             },
         ];
     },
