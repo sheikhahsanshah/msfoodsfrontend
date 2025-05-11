@@ -49,7 +49,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("user");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        Cookies.remove("accessToken");
+        Cookies.remove("accessToken", { path: "/", domain: "msfoods.pk" });
         setUser(null);
 
         toast({
@@ -96,7 +96,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await refreshRes.json();
                 localStorage.setItem("accessToken", newAccessToken);
                 localStorage.setItem("refreshToken", newRefreshToken);
-                Cookies.set("accessToken", newAccessToken, { expires: 7 });
+                Cookies.set("accessToken", newAccessToken, {
+                    expires: 7,
+                    path: "/",
+                    domain: "msfoods.pk",
+                    secure: true,
+                    sameSite: "Lax",
+                });
 
                 const newMeRes = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { Authorization: `Bearer ${newAccessToken}` },
@@ -127,7 +133,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if (tokens) {
             localStorage.setItem("accessToken", tokens.accessToken);
             localStorage.setItem("refreshToken", tokens.refreshToken);
-            Cookies.set("accessToken", tokens.accessToken, { expires: 7 });
+            Cookies.set("accessToken", tokens.accessToken, {
+                expires: 7,
+                path: "/",
+                domain: "msfoods.pk",
+                secure: true,
+                sameSite: "Lax",
+            });
         }
     };
 
@@ -150,7 +162,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("user", JSON.stringify(data.data.user));
             localStorage.setItem("accessToken", data.data.accessToken);
             localStorage.setItem("refreshToken", data.data.refreshToken);
-            Cookies.set("accessToken", data.data.accessToken, { expires: 7 });
+            Cookies.set("accessToken", data.data.accessToken, {
+                expires: 7,
+                path: "/",
+                domain: "msfoods.pk",
+                secure: true,
+                sameSite: "Lax",
+            });
 
             setUser(data.data.user);
 
