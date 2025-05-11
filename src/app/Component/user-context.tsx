@@ -26,7 +26,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app";
+    process.env.NEXT_PUBLIC_API_URL || "https://msfoodsbackend.vercel.app/";
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
