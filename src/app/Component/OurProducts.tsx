@@ -54,17 +54,33 @@ export default function ProductGrid() {
         }
     };
 
-    // const handleBuyNow = (product: Product) => {
-    //     toast({
-    //         title: "Added to cart",
-    //         description: `${product.name} added to your cart`,
-    //     });
-    // };
+   
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center min-h-screen">
-                <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                        <div
+                            key={index}
+                            className="animate-pulse group flex flex-col overflow-hidden h-full bg-gray-100 rounded-lg"
+                        >
+                            {/* Skeleton for Image */}
+                            <div className="aspect-square bg-gray-300"></div>
+
+                            {/* Skeleton for Content */}
+                            <div className="p-3 md:p-5 flex flex-col flex-grow">
+                                <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                            </div>
+
+                            {/* Skeleton for Button */}
+                            <div className="p-3 md:p-5 pt-0 mt-auto">
+                                <div className="h-10 bg-gray-300 rounded-full"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -103,13 +119,13 @@ export default function ProductGrid() {
                             <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
 
                                 {/* Product Image */}
-                                <CardHeader className="p-0 relative bg-white overflow-hidden h-58">
+                                <CardHeader className="p-0 relative aspect-square bg-white overflow-hidden h-58">
                                     <Image
                                         src={product.images[0]?.url || "/placeholder.svg"}
                                         alt={product.name}
                                         width={900}
                                         height={900}
-                                        className="object-contain w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                        className=" w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
                                     />
                                 </CardHeader>
 

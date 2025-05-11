@@ -435,13 +435,34 @@ export default function CategoryProducts() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">Loading products...</div>
-      </div>
-    )
-  }
+    if (isLoading) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                        <div
+                            key={index}
+                            className="animate-pulse group flex flex-col overflow-hidden h-full bg-gray-100 rounded-lg"
+                        >
+                            {/* Skeleton for Image */}
+                            <div className="aspect-square bg-gray-300"></div>
+
+                            {/* Skeleton for Content */}
+                            <div className="p-3 md:p-5 flex flex-col flex-grow">
+                                <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                            </div>
+
+                            {/* Skeleton for Button */}
+                            <div className="p-3 md:p-5 pt-0 mt-auto">
+                                <div className="h-10 bg-gray-300 rounded-full"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
   if (error) {
     return <div className="text-center text-red-500">{error}</div>
@@ -761,13 +782,13 @@ export default function CategoryProducts() {
                     <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
 
                         {/* Product Image + Sale Badge */}
-                        <CardHeader className="p-0 relative bg-white overflow-hidden h-58">
+                        <CardHeader className="p-0 relative aspect-square bg-white overflow-hidden h-58">
                             <Image
                                 src={product.images[0]?.url || "/placeholder.svg"}
                                 alt={product.name}
-                                width={800}
-                                height={800}
-                                className="object-contain w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                width={900}
+                                height={900}
+                                className=" w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
                             />
                             {isOnSale && (
                                 <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold z-10">

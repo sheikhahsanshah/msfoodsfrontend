@@ -4,11 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import {  Minus, Plus, Star, Share2, ShoppingCart, ShoppingBag, Eye } from "lucide-react"
+import { Minus, Plus, Star, Share2, ShoppingCart, ShoppingBag, Eye, ArrowBigRight } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useCart } from "@/app/Component/CartContext"
-import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { motion, AnimatePresence } from "framer-motion"
+import { Badge } from "@/components/ui/badge"
+import { Tag } from "lucide-react"
 // import Header from "@/app/Component/Header"
 // import Footer from "@/app/Component/Footer"
 
@@ -68,7 +71,15 @@ export default function ProductDetail() {
     const [selectedPriceType, setSelectedPriceType] = useState<string>("packet")
     const { cart, addToCart } = useCart()
     const { toast } = useToast()
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+    const [animateIn, setAnimateIn] = useState(false)
 
+    useEffect(() => {
+        setAnimateIn(true)
+        return () => setAnimateIn(false)
+    }, [])
+
+    
     const fetchRelatedProducts = useCallback(
         async (categories: Category[]) => {
             try {
@@ -213,7 +224,7 @@ export default function ProductDetail() {
         toast({
             title: "Added to cart",
             description: `${quantity} × ${product.name} added to your cart`,
-             duration: 1000,
+            duration: 1000,
         })
     }
 
@@ -223,7 +234,7 @@ export default function ProductDetail() {
             toast({
                 title: "Link copied",
                 description: "Product link copied to clipboard",
-                 duration: 1000,
+                duration: 1000,
             })
         }
     }
@@ -327,6 +338,32 @@ export default function ProductDetail() {
 
     // Get available price types
     const availablePriceTypes = Array.from(new Set(product.priceOptions.map((option) => option.type)))
+   
+    const getCategoryColor = () => {
+        const colors = [
+            "from-rose-500 to-orange-500",
+            "from-emerald-500 to-teal-500",
+            "from-violet-500 to-purple-500",
+            "from-amber-400 to-yellow-500",
+            "from-cyan-500 to-blue-500",
+            "from-pink-500 to-fuchsia-500",
+        ]
+
+        // generate random 
+
+        const charSum= Math.floor(Math.random() * 1000)
+        return colors[charSum % colors.length]
+    }
+
+    // Get appropriate icon for category
+    const getCategoryIcon = () => {
+       
+       
+        return Tag
+    }
+
+
+
 
     return (
         <>
@@ -339,19 +376,21 @@ export default function ProductDetail() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         {/* Product Images - Styled like Amna's website */}
                         <div>
-                            <div className="relative aspect-square overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                            <div className="relative h-96 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+
                                 <Image
                                     src={selectedImage || product.images[0]?.url || "/placeholder.svg?height=600&width=600"}
                                     alt={product.name}
-                                    fill
-                                    className="object-contain p-4"
+
+                                    width={900}
+                                    height={900}
+                                    className=" w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+
                                     priority
                                 />
-                                {product.sale && (
-                                    <div className="absolute top-4 left-4 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                                        SALE
-                                    </div>
-                                )}
+
+
+
                             </div>
 
                             {/* Thumbnail Gallery */}
@@ -385,20 +424,24 @@ export default function ProductDetail() {
                                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{product.name}</h1>
 
                                 {/* Ratings Summary */}
-                                <div className="flex items-center space-x-2">
-                                    <div className="flex">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star
-                                                key={star}
-                                                className={`h-4 w-4 ${star <= Math.round(averageRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                                                    }`}
-                                            />
-                                        ))}
+                                {/* //if rating.lenght>0 then it sow other wise not show */}
+                                {reviews.length > 0 &&
+                                    <div className="flex items-center space-x-2">
+                                        <div className="flex">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    className={`h-4 w-4 ${star <= Math.round(averageRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                                        }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <span className="text-sm text-gray-500">
+                                            ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                                        </span>
                                     </div>
-                                    <span className="text-sm text-gray-500">
-                                        ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
-                                    </span>
-                                </div>
+
+                                }
                             </div>
 
                             {/* Price Display */}
@@ -512,6 +555,102 @@ export default function ProductDetail() {
                                 </div>
                             </div>
 
+                            {/* Categories */}
+                           
+
+                            <div className="pt-2 pb-2">
+                                <div className="flex items-center gap-2 mb-3">
+                                 
+                                    <h3 className="text-lg font-medium">Categories</h3>
+                                </div>
+
+                                <div className="flex flex-wrap gap-3">
+                                    <AnimatePresence>
+                                        {product.categories.map((category, index) => {
+                                            const CategoryIcon = getCategoryIcon()
+                                            const colorGradient = getCategoryColor()
+
+                                            return (
+                                                <motion.div
+                                                    key={category._id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{
+                                                        opacity: animateIn ? 1 : 0,
+                                                        y: animateIn ? 0 : 20,
+                                                        transition: { delay: index * 0.1 },
+                                                    }}
+                                                    exit={{ opacity: 0, scale: 0.9 }}
+                                                    whileHover={{ scale: 1.05 }}
+                                                    className="relative"
+                                                    onMouseEnter={() => setHoveredIndex(index)}
+                                                    onMouseLeave={() => setHoveredIndex(null)}
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        className={`relative overflow-hidden rounded-full px-4 py-2 font-medium transition-all duration-300 hover:text-white`}
+                                                    >
+                                                        <span className="relative z-10 flex items-center gap-1.5">
+                                                            <CategoryIcon className="h-4 w-4" />
+                                                            {category.name}
+                                                        </span>
+
+                                                        {/* Gradient background that appears on hover */}
+                                                        <span
+                                                            className={`absolute inset-0 bg-gradient-to-r ${colorGradient} opacity-0 transition-opacity duration-300 ${hoveredIndex === index ? "opacity-100" : ""}`}
+                                                        />
+
+                                                        {/* Subtle border gradient always visible */}
+                                                        <span
+                                                            className={`absolute inset-0 rounded-full bg-gradient-to-r ${colorGradient} opacity-20 p-[1px]`}
+                                                        />
+                                                    </Button>
+
+                                                    {/* Animated particles on hover */}
+                                                    {hoveredIndex === index && (
+                                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute -inset-1 z-0">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <motion.div
+                                                                    key={i}
+                                                                    initial={{
+                                                                        x: 0,
+                                                                        y: 0,
+                                                                        opacity: 0.7,
+                                                                        scale: 0.5 + Math.random() * 0.5,
+                                                                    }}
+                                                                    animate={{
+                                                                        x: (Math.random() - 0.5) * 60,
+                                                                        y: (Math.random() - 0.5) * 60,
+                                                                        opacity: 0,
+                                                                        scale: 0,
+                                                                        transition: {
+                                                                            duration: 0.8 + Math.random() * 0.5,
+                                                                            repeat: Number.POSITIVE_INFINITY,
+                                                                            repeatType: "loop",
+                                                                        },
+                                                                    }}
+                                                                    className={`absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-gradient-to-r ${colorGradient}`}
+                                                                />
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </motion.div>
+                                            )
+                                        })}
+                                    </AnimatePresence>
+                                </div>
+
+                                {/* Category count badge */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1, transition: { delay: 0.5 } }}
+                                    className="mt-2"
+                                >
+                                    <Badge variant="outline" className="text-xs text-muted-foreground">
+                                        {product.categories.length} {product.categories.length === 1 ? "category" : "categories"}
+                                    </Badge>
+                                </motion.div>
+                            </div>
+
                             {/* Add to Cart Button */}
                             <div className="flex space-x-4 pt-4">
                                 <button
@@ -520,6 +659,7 @@ export default function ProductDetail() {
                                     onClick={handleAddToCart}
                                     disabled={product.stock === 0}
                                 >
+
                                     <div className="flex items-center justify-center">
                                         <ShoppingCart className="h-5 w-5 mr-2" />
                                         <span>Add to Cart</span>
@@ -536,16 +676,6 @@ export default function ProductDetail() {
                                 </button>
                             </div>
 
-                            {/* Categories */}
-                            <div className="pt-4">
-                                <div className="flex flex-wrap gap-2">
-                                    {product.categories.map((category) => (
-                                        <Badge key={category._id} variant="outline" className="bg-gray-100 hover:bg-gray-200">
-                                            {category.name}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -660,7 +790,12 @@ export default function ProductDetail() {
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-16">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+                            <div className='w-full flex justify-between items-center'>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
+                                <Link href="/products" className="flex text-md font-bold text-black hover:underline mb-4">
+                                    View All <ArrowBigRight />
+                                </Link>
+                            </div>
                             <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
                                 {relatedProducts.map((product) => (
                                     <div key={product._id} className="group relative">
@@ -669,7 +804,7 @@ export default function ProductDetail() {
                                                 src={product.images[0]?.url || "/placeholder.svg?height=300&width=300"}
                                                 alt={product.name}
                                                 fill
-                                                className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                                                className="  group-hover:scale-105 transition-transform duration-300"
                                             />
                                             {product.sale && (
                                                 <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">

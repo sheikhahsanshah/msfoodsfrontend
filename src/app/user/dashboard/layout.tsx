@@ -28,7 +28,7 @@ export default function DashboardLayout({
     // Redirect to login if not authenticated
     useEffect(() => {
         if (!loading && !isAuthenticated) {
-            toast({
+                toast({
                 title: "Unauthorized",
                 description: "Please login to access your dashboard.",
                 variant: "destructive",
@@ -43,7 +43,7 @@ export default function DashboardLayout({
             router.push("/auth/login")
             toast({
                 title: "Success",
-                description: "You have been logged out successfully.",
+                    description: "You have been logged out successfully.",
             })
         } catch (error) {
             console.error("Logout error:", error)

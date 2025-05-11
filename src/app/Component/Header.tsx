@@ -589,6 +589,16 @@ const Header = () => {
                                                 <span>Dashboard</span>
                                             </Link>
                                         </DropdownMenuItem>
+                                        {user.role === "admin" && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href="/admin/products" className="flex items-center cursor-pointer">
+                                                    <User className="mr-2 h-4 w-4" />
+                                                    <span> Admin</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            )}
+                                       
+
                                         <DropdownMenuItem asChild>
                                             <Link href="/user/dashboard/orders" className="flex items-center cursor-pointer">
                                                 <Package className="mr-2 h-4 w-4" />

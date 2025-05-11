@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ChevronRight } from "lucide-react"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com"
 
@@ -100,9 +100,7 @@ export default function CreativeCategoryShowcase() {
 
     if (isLoading) {
         return (
-            <div className="container mx-auto px-4 py-6 text-center">
-                <div className="animate-pulse text-lg">Loading categories...</div>
-            </div>
+            <CategorySkeleton />
         )
     }
 
@@ -121,21 +119,22 @@ export default function CreativeCategoryShowcase() {
 
     return (
         <div className="container mx-auto px-4 py-4 ">
-            <h2 className="text-2xl font-bold mb-8">Categories</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Categories</h2>
+                <Link href="/categories" className="flex items-center gap-1 text-sm font-medium">
+                    See All <ChevronRight size={16} />
+                </Link>
+            </div>
 
             <div
-                className="relative h-[60vh] overflow-hidden"
+                className="relative h-[50vh] overflow-hidden"
                 ref={containerRef}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onWheel={handleWheel}
             >
-                {/* Indicator lines */}
-                {/* <div className="absolute left-0 right-0 top-1/2 transform -translate-y-1/2 flex flex-col items-center pointer-events-none">
-          <div className="w-full h-[2px] bg-gray-200 mb-24"></div>
-          <div className="w-full h-[2px] bg-gray-200 mt-24"></div>
-        </div> */}
+               
 
                 {/* Category wheel */}
                 <div className="absolute left-0 right-0 top-[30%]">
@@ -212,7 +211,8 @@ export default function CreativeCategoryShowcase() {
                 </div>
 
                 {/* Swipe indicator */}
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center items-center text-sm text-gray-500 pointer-events-none">
+            </div>
+                <div className="  flex justify-center items-center text-sm text-gray-500 pointer-events-none">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.5, 1, 0.5] }}
@@ -227,7 +227,6 @@ export default function CreativeCategoryShowcase() {
                         </div>
                     </motion.div>
                 </div>
-            </div>
 
             {/* Dots indicator */}
             <div className="flex justify-center mt-6 gap-2">
@@ -239,6 +238,62 @@ export default function CreativeCategoryShowcase() {
                         onClick={() => selectCategory(index)}
                     />
                 ))}
+            </div>
+        </div>
+    )
+}
+
+function CategorySkeleton() {
+    return (
+        <div className="container mx-auto px-4 py-4">
+            <div className="flex justify-between items-center mb-6">
+                <div className="h-8 w-32 bg-gray-200 rounded-md animate-pulse"></div>
+                <div className="h-5 w-16 bg-gray-200 rounded-md animate-pulse"></div>
+            </div>
+
+            <div className="relative h-[500px]">
+                {/* Skeleton categories */}
+                {[0, 1, 2].map((index) => (
+                    <div
+                        key={index}
+                        className="absolute left-0 right-0 flex justify-center"
+                        style={{
+                            top: `${index * 120}px`,
+                            opacity: index === 0 ? 1 : 1 - index * 0.3,
+                            zIndex: 10 - index,
+                        }}
+                    >
+                        <div className="flex items-center w-full max-w-sm p-4 rounded-2xl">
+                            <div className="w-20 h-20 rounded-full bg-gray-200 animate-pulse mr-4"></div>
+                            <div className="flex-grow">
+                                <div className="h-6 w-32 bg-gray-200 rounded-md animate-pulse mb-2"></div>
+                                {index === 0 && <div className="h-8 w-28 bg-gray-200 rounded-full animate-pulse mt-2"></div>}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+                {/* Skeleton swipe indicator */}
+                <div className="absolute bottom-12 left-0 right-0 flex justify-center">
+                    <div className="flex flex-col items-center">
+                        <div className="h-4 w-24 bg-gray-200 rounded-md animate-pulse mb-2"></div>
+                        <div className="flex flex-col items-center gap-1">
+                            <div className="w-1 h-1 rounded-full bg-gray-200"></div>
+                            <div className="w-1 h-1 rounded-full bg-gray-200"></div>
+                            <div className="w-1 h-1 rounded-full bg-gray-200"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Skeleton dots */}
+                <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2">
+                    {[0, 1, 2, 3].map((index) => (
+                        <div
+                            key={index}
+                            className={`h-2 rounded-full bg-gray-200 animate-pulse ${index === 0 ? "w-6" : "w-2"}`}
+                        ></div>
+                    ))}
+                </div>
             </div>
         </div>
     )

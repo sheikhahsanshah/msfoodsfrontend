@@ -126,7 +126,7 @@ export default function Contact() {
                             Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
                         </p>
                         <p className="mt-3 text-gray-700">
-                            Phone: <span className="whitespace-nowrap">+923420411505</span>
+                            Phone: <span className="whitespace-nowrap">+923214729048</span>
                         </p>
                         <p className="mt-1 text-gray-700">
                             Email: <span className="whitespace-nowrap">msfoodscontact@gmail.com</span>
