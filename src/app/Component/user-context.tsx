@@ -101,7 +101,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     path: "/",
                     domain: "msfoods.pk",
                     secure: true,
-                    sameSite: "Lax",
+                    sameSite: "Strict",
                 });
 
                 const newMeRes = await fetch(`${API_URL}/api/auth/me`, {
@@ -138,7 +138,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 path: "/",
                 domain: "msfoods.pk",
                 secure: true,
-                sameSite: "Lax",
+                sameSite: "Strict",
             });
         }
     };
@@ -167,7 +167,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 path: "/",
                 domain: "msfoods.pk",
                 secure: true,
-                sameSite: "Lax",
+                sameSite: "Strict",
             });
 
             setUser(data.data.user);
