@@ -17,7 +17,7 @@ interface User {
     email?: string;
     phone?: string;
     role: string;
-    accessToken?: string; // ✅ Include this
+    accessToken?: string;
 }
 
 interface UserContextType {
@@ -83,6 +83,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
+                // Refresh token if access token fails
                 const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
