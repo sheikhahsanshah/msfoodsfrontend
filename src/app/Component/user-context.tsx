@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    useCallback,
-    type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import Cookies from "js-cookie";
@@ -33,8 +26,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const API_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app";
+    process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app";
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -42,35 +34,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const { toast } = useToast();
 
-    const logout = useCallback(
-        async (shouldCallServer = true) => {
-            if (shouldCallServer) {
-                try {
-                    await fetch(`${API_URL}/api/auth/logout`, {
-                        method: "POST",
-                        credentials: "include",
-                    });
-                } catch {
-                    console.warn("Server logout failed");
-                }
+    const logout = useCallback(async (shouldCallServer = true) => {
+        if (shouldCallServer) {
+            try {
+                await fetch(`${API_URL}/api/auth/logout`, {
+                    method: "POST",
+                    credentials: "include",
+                });
+            } catch {
+                console.warn("Server logout failed");
             }
+        }
 
-            localStorage.removeItem("user");
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-            Cookies.remove("accessToken");
-            setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        Cookies.remove("accessToken");
+        setUser(null);
 
-            toast({
-                title: "Logged out",
-                description: "You have been successfully logged out",
-                duration: 1000,
-            });
+        toast({
+            title: "Logged out",
+            description: "You have been successfully logged out",
+            duration: 1000,
+        });
 
-            router.push("/auth/login");
-        },
-        [router, toast]
-    );
+        router.push("/auth/login");
+    }, [router, toast]);
 
     useEffect(() => {
         const checkAndRestoreSession = async () => {
@@ -104,10 +93,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
                 if (!refreshRes.ok) throw new Error("Refresh failed");
 
-                const {
-                    accessToken: newAccessToken,
-                    refreshToken: newRefreshToken,
-                } = await refreshRes.json();
+                const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await refreshRes.json();
                 localStorage.setItem("accessToken", newAccessToken);
                 localStorage.setItem("refreshToken", newRefreshToken);
                 Cookies.set("accessToken", newAccessToken, { expires: 7 });
@@ -145,12 +131,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const register = async (
-        name: string,
-        email: string,
-        password: string,
-        phone?: string
-    ) => {
+    const register = async (name: string, email: string, password: string, phone?: string) => {
         try {
             setLoading(true);
             const response = await fetch(`${API_URL}/api/auth/register`, {
@@ -183,10 +164,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             toast({
                 title: "Registration failed",
-                description:
-                    error instanceof Error
-                        ? error.message
-                        : "An error occurred during registration",
+                description: error instanceof Error ? error.message : "An error occurred during registration",
                 variant: "destructive",
                 duration: 1000,
             });
