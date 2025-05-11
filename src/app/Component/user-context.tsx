@@ -17,6 +17,7 @@ interface User {
     email?: string;
     phone?: string;
     role: string;
+    accessToken?: string; // ✅ Include this
 }
 
 interface UserContextType {
@@ -76,12 +77,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
                 if (meRes.ok) {
                     const meData = await meRes.json();
-                    setUser(meData.data);
-                    localStorage.setItem("user", JSON.stringify(meData.data));
+                    const fullUser = { ...meData.data, accessToken };
+                    setUser(fullUser);
+                    localStorage.setItem("user", JSON.stringify(fullUser));
                     return;
                 }
 
-                // try refresh token
                 const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -104,10 +105,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
                 if (newMeRes.ok) {
                     const meData = await newMeRes.json();
-                    setUser(meData.data);
-                    localStorage.setItem("user", JSON.stringify(meData.data));
+                    const updatedUser = { ...meData.data, accessToken: newAccessToken };
+                    setUser(updatedUser);
+                    localStorage.setItem("user", JSON.stringify(updatedUser));
                 } else {
-                    throw new Error("Fetching user after refresh failed");
+                    throw new Error("Failed to fetch user after token refresh");
                 }
             } catch (error) {
                 console.error("Session restore failed:", error);
@@ -124,9 +126,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
         user: User,
         tokens?: { accessToken: string; refreshToken: string }
     ) => {
-        setUser(user);
+        const fullUser = {
+            ...user,
+            accessToken: tokens?.accessToken || user.accessToken,
+        };
+        setUser(fullUser);
+
         if (typeof window !== "undefined") {
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("user", JSON.stringify(fullUser));
             if (tokens) {
                 localStorage.setItem("accessToken", tokens.accessToken);
                 localStorage.setItem("refreshToken", tokens.refreshToken);
@@ -152,13 +159,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
             if (!res.ok) throw new Error(data.message || "Registration failed");
 
+            const newUser = {
+                ...data.data.user,
+                accessToken: data.data.accessToken,
+            };
+
             if (typeof window !== "undefined") {
-                localStorage.setItem("user", JSON.stringify(data.data.user));
+                localStorage.setItem("user", JSON.stringify(newUser));
                 localStorage.setItem("accessToken", data.data.accessToken);
                 localStorage.setItem("refreshToken", data.data.refreshToken);
             }
 
-            setUser(data.data.user);
+            setUser(newUser);
             toast({ title: "Registration successful" });
             router.push("/");
         } catch (err: unknown) {
