@@ -6,6 +6,7 @@ import type React from "react";
 import { UserProvider } from "./Component/user-context";
 import { CartProvider } from "./Component/CartContext";
 import { AdProvider } from "./Component/ad-context";
+import { SessionWrapper } from "@/app/Component/SessionWrapper"; // ✅ new wrapper
 
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"] });
 
@@ -64,10 +65,12 @@ export default function RootLayout({
             </head>
             <body className={dmSans.className}>
                 <UserProvider>
+                    <SessionWrapper>
                     <CartProvider>
                         <AdProvider>{children}</AdProvider>
                         <Toaster />
-                    </CartProvider>
+                        </CartProvider>
+                    </SessionWrapper>
                 </UserProvider>
             </body>
         </html>
