@@ -67,6 +67,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const checkAndRestoreSession = async () => {
+            if (typeof window === "undefined") return;
             const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
             const refreshToken = localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
 
