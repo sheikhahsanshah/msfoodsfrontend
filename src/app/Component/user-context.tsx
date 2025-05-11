@@ -42,7 +42,15 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://msfoodsbackend.vercel.app";
 
 export function UserProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    // ✅ Initialize user from localStorage to avoid UI flicker
+    const [user, setUser] = useState<User | null>(() => {
+        if (typeof window !== "undefined") {
+            const stored = localStorage.getItem("user");
+            return stored ? JSON.parse(stored) : null;
+        }
+        return null;
+    });
+
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { toast } = useToast();
@@ -83,7 +91,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
-                // Refresh token if access token fails
+                if (meRes.status !== 401) {
+                    throw new Error("Non-auth error in /me");
+                }
+
+                // Try refreshing token
                 const refreshRes = await fetch(`${API_URL}/api/auth/refresh-token`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -104,17 +116,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     headers: { Authorization: `Bearer ${newAccessToken}` },
                 });
 
-                if (newMeRes.ok) {
-                    const meData = await newMeRes.json();
-                    const updatedUser = { ...meData.data, accessToken: newAccessToken };
-                    setUser(updatedUser);
-                    localStorage.setItem("user", JSON.stringify(updatedUser));
-                } else {
-                    throw new Error("Failed to fetch user after token refresh");
-                }
-            } catch (error) {
-                console.error("Session restore failed:", error);
-                logout();
+                if (!newMeRes.ok) throw new Error("Failed to fetch user after refresh");
+
+                const meData = await newMeRes.json();
+                const updatedUser = { ...meData.data, accessToken: newAccessToken };
+                setUser(updatedUser);
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+            } catch (error: any) {
+                console.error("Session restore failed:", error.message);
+                // Only logout on actual auth errors
+                const shouldLogout =
+                    error.message.includes("Invalid") ||
+                    error.message.includes("Refresh") ||
+                    error.message.includes("fetch user");
+
+                if (shouldLogout) logout();
             } finally {
                 setLoading(false);
             }
@@ -184,6 +200,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         }
     };
+
+    if (loading) return null; // Optional: Replace with a spinner if desired
 
     return (
         <UserContext.Provider
