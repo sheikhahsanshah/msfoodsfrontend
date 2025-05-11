@@ -46,9 +46,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
             }
         }
 
+        // Remove from both localStorage and sessionStorage
         localStorage.removeItem("user");
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("refreshToken");
         Cookies.remove("accessToken", { path: "/", domain: "msfoods.pk" });
         setUser(null);
 
@@ -63,8 +67,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const checkAndRestoreSession = async () => {
-            const accessToken = localStorage.getItem("accessToken");
-            const refreshToken = localStorage.getItem("refreshToken");
+            const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+            const refreshToken = localStorage.getItem("refreshToken") || sessionStorage.getItem("refreshToken");
 
             if (!accessToken || !refreshToken) {
                 setLoading(false);
@@ -80,7 +84,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 if (meRes.ok) {
                     const meData = await meRes.json();
                     setUser(meData.data);
+                    // Store in both localStorage and sessionStorage
                     localStorage.setItem("user", JSON.stringify(meData.data));
+                    sessionStorage.setItem("user", JSON.stringify(meData.data));
                     return;
                 }
 
@@ -96,6 +102,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
                 const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await refreshRes.json();
                 localStorage.setItem("accessToken", newAccessToken);
                 localStorage.setItem("refreshToken", newRefreshToken);
+                sessionStorage.setItem("accessToken", newAccessToken); // Set new access token in sessionStorage
+                sessionStorage.setItem("refreshToken", newRefreshToken); // Set new refresh token in sessionStorage
                 Cookies.set("accessToken", newAccessToken, {
                     expires: 7,
                     path: "/",
@@ -113,6 +121,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     const meData = await newMeRes.json();
                     setUser(meData.data);
                     localStorage.setItem("user", JSON.stringify(meData.data));
+                    sessionStorage.setItem("user", JSON.stringify(meData.data));
                 } else {
                     throw new Error("Failed to fetch user after token refresh");
                 }
@@ -129,10 +138,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const login = (user: User, tokens?: { accessToken: string; refreshToken: string }) => {
         setUser(user);
+        // Store in both localStorage and sessionStorage
         localStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("user", JSON.stringify(user));
+
         if (tokens) {
             localStorage.setItem("accessToken", tokens.accessToken);
             localStorage.setItem("refreshToken", tokens.refreshToken);
+            sessionStorage.setItem("accessToken", tokens.accessToken); // Store access token in sessionStorage
+            sessionStorage.setItem("refreshToken", tokens.refreshToken); // Store refresh token in sessionStorage
             Cookies.set("accessToken", tokens.accessToken, {
                 expires: 7,
                 path: "/",
@@ -160,8 +174,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
             }
 
             localStorage.setItem("user", JSON.stringify(data.data.user));
+            sessionStorage.setItem("user", JSON.stringify(data.data.user)); // Store user in sessionStorage
             localStorage.setItem("accessToken", data.data.accessToken);
             localStorage.setItem("refreshToken", data.data.refreshToken);
+            sessionStorage.setItem("accessToken", data.data.accessToken); // Store token in sessionStorage
+            sessionStorage.setItem("refreshToken", data.data.refreshToken); // Store refresh token in sessionStorage
             Cookies.set("accessToken", data.data.accessToken, {
                 expires: 7,
                 path: "/",
