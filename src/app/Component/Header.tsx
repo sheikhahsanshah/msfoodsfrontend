@@ -82,7 +82,7 @@ interface SearchResults {
 
 const Header = () => {
     const router = useRouter()
-    const {  getTotalItems, getTotalPrice } = useCart()
+    const { getTotalItems, getTotalPrice } = useCart()
     const { user, logout } = useUser()
     const texts = [
         "Minimum Order Amount Rs 3,000",
@@ -538,7 +538,7 @@ const Header = () => {
                                             !error &&
                                             searchResults.suggestions.length === 0 &&
                                             searchResults.products.length === 0 && (
-                                            <div className="p-4 text-center text-gray-500">No results found for &quot;{searchQuery}&quot;</div>
+                                                <div className="p-4 text-center text-gray-500">No results found for &quot;{searchQuery}&quot;</div>
                                             )}
 
                                         {/* Search suggestions */}
@@ -596,8 +596,8 @@ const Header = () => {
                                                     <span> Admin</span>
                                                 </Link>
                                             </DropdownMenuItem>
-                                            )}
-                                       
+                                        )}
+
 
                                         <DropdownMenuItem asChild>
                                             <Link href="/user/dashboard/orders" className="flex items-center cursor-pointer">
@@ -677,7 +677,7 @@ const Header = () => {
             </div>
 
             <MSFoodsAd location="header" className="" />
-            
+
             <div className="lg:hidden px-4 py-2 bg-white border-b flex items-center justify-between">
                 <button onClick={() => router.back()} className="flex items-center space-x-1">
                     <ArrowLeft className="h-5 w-5 text-gray-700" />
@@ -722,7 +722,7 @@ const Header = () => {
                                 !error &&
                                 searchResults.suggestions.length === 0 &&
                                 searchResults.products.length === 0 && (
-                                <div className="p-4 text-center text-gray-500">No results found for &quot;{searchQuery}&quot;</div>
+                                    <div className="p-4 text-center text-gray-500">No results found for &quot;{searchQuery}&quot;</div>
                                 )}
 
                             {/* Search suggestions */}
@@ -751,8 +751,8 @@ const Header = () => {
                     )}
                 </div>
             </div>
-            
-          
+
+
 
             {/* Mobile menu */}
             <AnimatePresence>
@@ -821,8 +821,14 @@ const Header = () => {
                                         <User className="h-5 w-5 mr-2" />
                                         <span>Dashboard</span>
                                     </Link>
+                                    {user.role === "admin" && (
+                                        <Link href="/admin/products" className="flex items-center cursor-pointer">
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span> Admin</span>
+                                        </Link>
+                                    )}
                                     <Link
-                                        href="/user/orders"
+                                        href="/user/dashboard/orders"
                                         className="flex items-center p-4 border-b text-black hover:bg-gray-50 transition-colors"
                                     >
                                         <Package className="h-5 w-5 mr-2" />

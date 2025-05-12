@@ -23,10 +23,12 @@ const emailSignupSchema = z.object({
 
 const phoneSignupSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
-    phone: z.string().min(10, "Invalid phone number"),
+    phone: z
+        .string()
+        .regex(/^\+92\d{10}$/, "Phone number must start with +92 and be 12 digits long (e.g., +923078203344)"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     verificationMethod: z.literal("phone"),
-})
+});
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 
@@ -236,7 +238,7 @@ export default function SignupPage() {
                                             <FormItem>
                                                 <FormLabel>Phone Number</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="+1234567890" {...field} />
+                                                    <Input placeholder="+923123456789" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
