@@ -1,6 +1,8 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import Header from "@/app/Component/Header"
+import Footer from "@/app/Component/Footer"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
@@ -86,7 +88,7 @@ export default function SignupPage() {
             toast({
                 title: "Verification Email Sent",
                 description: "Please check your email to verify your account",
-                 duration: 1000,
+                duration: 1000,
             })
 
             router.push("/auth/verification-sent?method=email")
@@ -129,7 +131,7 @@ export default function SignupPage() {
             toast({
                 title: "Verification Code Sent",
                 description: "Please check your phone for the verification code",
-                 duration: 1000,
+                duration: 1000,
             })
 
             router.push(`/auth/verify-phone?phone=${values.phone}`)
@@ -146,135 +148,139 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle className="text-2xl">Create Account</CardTitle>
-                    <CardDescription>Enter your information to create an account</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="phone" onValueChange={(value) => setVerificationMethod(value as "email" | "phone")}>
-                        <TabsList className="grid w-full grid-cols-2 mb-6">
-                            <TabsTrigger value="phone" className="flex items-center gap-2">
-                                <Phone className="h-4 w-4" />
-                                Phone
-                            </TabsTrigger>
-                            <TabsTrigger value="email" className="flex items-center gap-2">
-                                <Mail className="h-4 w-4" />
-                                Email
-                            </TabsTrigger>
-                        </TabsList>
+        <>
+            <Header />
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 p-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle className="text-2xl">Create Account</CardTitle>
+                        <CardDescription>Enter your information to create an account</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Tabs defaultValue="phone" onValueChange={(value) => setVerificationMethod(value as "email" | "phone")}>
+                            <TabsList className="grid w-full grid-cols-2 mb-6">
+                                <TabsTrigger value="phone" className="flex items-center gap-2">
+                                    <Phone className="h-4 w-4" />
+                                    Phone
+                                </TabsTrigger>
+                                <TabsTrigger value="email" className="flex items-center gap-2">
+                                    <Mail className="h-4 w-4" />
+                                    Email
+                                </TabsTrigger>
+                            </TabsList>
 
-                        <TabsContent value="email">
-                            <Form {...emailForm}>
-                                <form onSubmit={emailForm.handleSubmit(onSubmitEmail)} className="space-y-4">
-                                    <FormField
-                                        control={emailForm.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Full Name</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="John Doe" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={emailForm.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Email</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="john@example.com" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={emailForm.control}
-                                        name="password"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Password</FormLabel>
-                                                <FormControl>
-                                                    <Input type="password" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" className="w-full" disabled={isLoading}>
-                                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        {isLoading ? "Creating Account..." : "Sign Up with Email"}
-                                    </Button>
-                                </form>
-                            </Form>
-                        </TabsContent>
+                            <TabsContent value="email">
+                                <Form {...emailForm}>
+                                    <form onSubmit={emailForm.handleSubmit(onSubmitEmail)} className="space-y-4">
+                                        <FormField
+                                            control={emailForm.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Full Name</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Ahsan sheikh" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={emailForm.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Email</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="john@gmail.com" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={emailForm.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Password</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="password" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Button type="submit" className="w-full" disabled={isLoading}>
+                                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            {isLoading ? "Creating Account..." : "Sign Up with Email"}
+                                        </Button>
+                                    </form>
+                                </Form>
+                            </TabsContent>
 
-                        <TabsContent value="phone">
-                            <Form {...phoneForm}>
-                                <form onSubmit={phoneForm.handleSubmit(onSubmitPhone)} className="space-y-4">
-                                    <FormField
-                                        control={phoneForm.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Full Name</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="John Doe" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={phoneForm.control}
-                                        name="phone"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Phone Number</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="+923123456789" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={phoneForm.control}
-                                        name="password"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Password</FormLabel>
-                                                <FormControl>
-                                                    <Input type="password" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button type="submit" className="w-full" disabled={isLoading}>
-                                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        {isLoading ? "Creating Account..." : "Sign Up with Phone"}
-                                    </Button>
-                                </form>
-                            </Form>
-                        </TabsContent>
-                    </Tabs>
+                            <TabsContent value="phone">
+                                <Form {...phoneForm}>
+                                    <form onSubmit={phoneForm.handleSubmit(onSubmitPhone)} className="space-y-4">
+                                        <FormField
+                                            control={phoneForm.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Full Name</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="Ahsan sheikh" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={phoneForm.control}
+                                            name="phone"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Phone Number</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="+923123456789" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={phoneForm.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Password</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="password" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <Button type="submit" className="w-full" disabled={isLoading}>
+                                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            {isLoading ? "Creating Account..." : "Sign Up with Phone"}
+                                        </Button>
+                                    </form>
+                                </Form>
+                            </TabsContent>
+                        </Tabs>
 
-                    <div className="mt-6 text-center text-sm">
-                        Already have an account?{" "}
-                        <Link href="/auth/login" className="font-medium text-primary hover:underline">
-                            Login
-                        </Link>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+                        <div className="mt-6 text-center text-sm">
+                            Already have an account?{" "}
+                            <Link href="/auth/login" className="font-medium text-primary hover:underline">
+                                Login
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            <Footer />
+        </>
     )
 }
 

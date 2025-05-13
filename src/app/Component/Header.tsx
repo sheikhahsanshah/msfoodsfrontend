@@ -853,7 +853,7 @@ const Header = () => {
                             )}
 
                             <Link
-                                href="/cart"
+                                href="/user/cart"
                                 className="flex items-center justify-between p-4 border-b text-black hover:bg-gray-50 transition-colors"
                             >
                                 <div className="flex items-center">

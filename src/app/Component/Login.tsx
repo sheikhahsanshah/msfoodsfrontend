@@ -105,15 +105,15 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white p-4">
-            <Card className="w-full max-w-md bg-gray-50">
-                <CardHeader>
-                    <CardTitle className="text-2xl">Welcome Back</CardTitle>
-                    <CardDescription>Enter your credentials to login to your account</CardDescription>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-50 p-4">
+            <Card className="w-full max-w-md shadow-lg border-0">
+                <CardHeader className="space-y-1">
+                    <CardTitle className="text-3xl font-bold tracking-tight">Welcome Back</CardTitle>
+                    <CardDescription className="text-gray-500">Enter your credentials to login to your account</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Tabs defaultValue="phone" onValueChange={(value) => setVerificationMethod(value as "email" | "phone")}>
-                        <TabsList className="grid w-full grid-cols-2 mb-6">
+                        <TabsList className="grid w-full grid-cols-2 mb-8 rounded-lg p-1 bg-gray-100">
                             <TabsTrigger value="phone" className="flex items-center gap-2">
                                 <Phone className="h-4 w-4" />
                                 Phone
@@ -134,7 +134,7 @@ export default function LoginPage() {
                                             <FormItem>
                                                 <FormLabel>Email</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="john@example.com" {...field} />
+                                                    <Input placeholder="john@example.com" className="bg-white" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -152,13 +152,13 @@ export default function LoginPage() {
                                                     </Link>
                                                 </div>
                                                 <FormControl>
-                                                    <Input type="password" {...field} />
+                                                    <Input type="password" className="bg-white" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <Button type="submit" className="w-full" disabled={isLoading}>
+                                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white transition-colors" disabled={isLoading}>
                                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         {isLoading ? "Logging In..." : "Login"}
                                     </Button>
@@ -176,7 +176,7 @@ export default function LoginPage() {
                                             <FormItem>
                                                 <FormLabel>Phone Number</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="+1234567890" {...field} />
+                                                    <Input placeholder="+1234567890" className="bg-white" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -194,13 +194,13 @@ export default function LoginPage() {
                                                     </Link>
                                                 </div>
                                                 <FormControl>
-                                                    <Input type="password" {...field} />
+                                                    <Input type="password" className="bg-white" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <Button type="submit" className="w-full" disabled={isLoading}>
+                                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white transition-colors" disabled={isLoading}>
                                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         {isLoading ? "Logging In..." : "Login"}
                                     </Button>
@@ -209,7 +209,7 @@ export default function LoginPage() {
                         </TabsContent>
                     </Tabs>
 
-                    <div className="mt-6 text-center text-sm">
+                    <div className="mt-8 text-center text-sm text-gray-500">
                         Don&apos;t have an account?{" "}
                         <Link href="/auth/signup" className="font-medium text-primary hover:underline">
                             Sign Up

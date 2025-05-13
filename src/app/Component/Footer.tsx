@@ -16,7 +16,7 @@ const Footer = () => {
                             <p className="text-sm">
                                 Address: Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
                             </p>
-                            <p className="text-sm">Registered Taxpayer: D893497 (Active)</p>
+                           
                         </div>
                     </div>
 
