@@ -11,7 +11,7 @@ Photographic evidence is essential for validating the claim and helps us maintai
 Once your claim is received and reviewed, we will notify you of the outcome. If your refund is approved, it will be processed within 7 business days using the original payment method used at checkout.
 
 Refunds may take additional time to appear in your account depending on your bank or payment provider. We are not responsible for delays caused by third-party payment processors.
-
+cd
 Please note that we do not issue refunds for minor packaging imperfections that do not affect product quality, nor do we offer refunds based on taste preferences or changes of mind.
 
 If a refund is not possible due to product unavailability or other circumstances, we may offer store credit or a replacement as an alternative solution based on your preference.

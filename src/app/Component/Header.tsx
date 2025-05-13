@@ -405,8 +405,8 @@ const Header = () => {
     const handleProductClick = (productId: string) => {
         console.log(`Navigating to product: ${productId}`)
         setShowResults(false)
-        // Use window.location for direct navigation
-        window.location.href = `/product/${productId}`
+        // Use Next.js router for client-side navigation
+        router.push(`/user/product/${productId}`)
     }
 
     // Calculate cart total
