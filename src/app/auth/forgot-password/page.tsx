@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 import { useToast } from "@/components/ui/use-toast"
 import { useState } from "react"
-import { Loader2, Mail, Phone } from "lucide-react"
+import { Loader2, Mail } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useRouter } from "next/navigation"
 
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
                 title: verificationMethod === "email" ? "Email Sent" : "SMS Sent",
                 description:
                     verificationMethod === "email"
-                        ? "Check your email for password reset instructions"
+                        ? "Check your email inbox and spam for password reset instructions"
                         : "Check your phone for the password reset code",
             })
             // Redirect to the verify-otp page with the identifier and method
@@ -97,12 +97,12 @@ return (
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="phone" onValueChange={(value) => setVerificationMethod(value as "email" | "phone")}>
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="phone" className="flex items-center gap-2">
+                    <TabsList className=" w-full mb-6">
+                        {/* <TabsTrigger value="phone" className="flex items-center gap-2">
                             <Phone className="h-4 w-4" />
                             Phone
-                        </TabsTrigger>
-                        <TabsTrigger value="email" className="flex items-center gap-2">
+                        </TabsTrigger> */}
+                        <TabsTrigger value="email" className="w-full flex items-center gap-2">
                             <Mail className="h-4 w-4" />
                             Email
                         </TabsTrigger>

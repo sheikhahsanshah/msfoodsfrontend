@@ -15,7 +15,7 @@ export default function PasswordResetSentPage() {
                 <p className="text-black mb-6">
                     We’ve sent a password reset link to 
                     Your email.<br />
-                    Please open your inbox and click the link to reset your password.
+                    Please open your inbox and spam and click the link to reset your password.
                 </p>
                 <Button
                     asChild

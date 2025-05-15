@@ -93,7 +93,7 @@ export default function VerificationSentPage() {
                     <CardTitle className="text-2xl text-center">Verification Sent</CardTitle>
                     <CardDescription className="text-center">
                         {method === "email"
-                            ? "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account."
+                            ? "We've sent a verification link to your email address. Please check your inbox or spam andclick the link to verify your account."
                             : "We've sent a verification code to your phone. Please enter the code to verify your account."}
                     </CardDescription>
                 </CardHeader>

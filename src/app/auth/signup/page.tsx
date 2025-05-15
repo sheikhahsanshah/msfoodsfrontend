@@ -91,7 +91,7 @@ export default function SignupPage() {
                 duration: 1000,
             })
 
-            router.push("/auth/verification-sent?method=email")
+            router.push(`/auth/verification-sent?method=email&email=${encodeURIComponent(values.email)}`)
         } catch (error: unknown) {
             toast({
                 variant: "destructive",

@@ -80,6 +80,7 @@ export default function Orders() {
     )
     const [isLoading, setIsLoading] = useState(true)
     const orderDetailsRef = useRef<HTMLDivElement>(null)
+    const [isUpdating, setIsUpdating] = useState(false)
 
     const fetchOrders = useCallback(async () => {
         try {
@@ -142,12 +143,15 @@ export default function Orders() {
     }
 
     const confirmUpdate = (orderId: string) => {
+        // If there's already a pending update being processed, don't allow another one
+        if (isConfirmDialogOpen) return
+
         const order = orders.find((o) => o._id === orderId)
         if (order) {
             setPendingUpdate({
                 orderId,
-                status: pendingUpdate?.status || order.status,
-                trackingId: pendingUpdate?.trackingId || order.trackingId || "",
+                status: pendingUpdate?.orderId === orderId ? pendingUpdate.status : order.status,
+                trackingId: pendingUpdate?.orderId === orderId ? pendingUpdate.trackingId : order.trackingId || "",
             })
             setIsConfirmDialogOpen(true)
         }
@@ -163,9 +167,10 @@ export default function Orders() {
     // })
 
     const submitUpdate = async () => {
-        if (!pendingUpdate) return
+        if (!pendingUpdate || isUpdating) return
 
         try {
+            setIsUpdating(true)
             // Format the status to lowercase as required by the API
             const status = pendingUpdate.status.toLowerCase()
 
@@ -206,6 +211,7 @@ export default function Orders() {
         } finally {
             setIsConfirmDialogOpen(false)
             setPendingUpdate(null)
+            setIsUpdating(false)
         }
     }
 
@@ -265,8 +271,8 @@ export default function Orders() {
             item.name,
             item.priceOption.type === "weight-based" ? `Weight (${item.priceOption.weight}g)` : "Packet",
             item.quantity.toString(),
-            `$${item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}`,
-            `$${item.priceOption?.price ? (item.quantity * item.priceOption.price).toFixed(2) : "0.00"}`,
+            `Rs ${item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}`,
+            `Rs ${item.priceOption?.price ? (item.quantity * item.priceOption.price).toFixed(2) : "0.00"}`,
         ])
 
         // Use autoTable directly
@@ -280,14 +286,14 @@ export default function Orders() {
         })
 
         // Get the y position after the table
-        const finalY = ((doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY) || 120
+        const finalY = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY || 120
 
         // Order summary
         doc.text("Order Summary:", 14, finalY + 10)
-        doc.text(`Subtotal: $${currentOrder.subtotal.toFixed(2)}`, 14, finalY + 17)
-        doc.text(`Shipping: $${currentOrder.shippingCost.toFixed(2)}`, 14, finalY + 24)
-        doc.text(`Discount: $${currentOrder.discount.toFixed(2)}`, 14, finalY + 31)
-        doc.text(`Total: $${currentOrder.totalAmount.toFixed(2)}`, 14, finalY + 38)
+        doc.text(`Subtotal: Rs ${currentOrder.subtotal.toFixed(2)}`, 14, finalY + 17)
+        doc.text(`Shipping: Rs ${currentOrder.shippingCost.toFixed(2)}`, 14, finalY + 24)
+        doc.text(`Discount: Rs ${currentOrder.discount.toFixed(2)}`, 14, finalY + 31)
+        doc.text(`Total: Rs ${currentOrder.totalAmount.toFixed(2)}`, 14, finalY + 38)
 
         // Payment information
         doc.text(`Payment Method: ${currentOrder.paymentMethod}`, 120, finalY + 10)
@@ -392,7 +398,7 @@ export default function Orders() {
                                 <TableRow key={order._id}>
                                     <TableCell className="font-medium">{order._id.substring(0, 8)}...</TableCell>
                                     <TableCell>{order.user ? order.user.name : order.shippingAddress.fullName}</TableCell>
-                                    <TableCell>${order.totalAmount.toFixed(2)}</TableCell>
+                                    <TableCell>Rs {order.totalAmount.toFixed(2)}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center space-x-2">
                                             <Select
@@ -410,7 +416,12 @@ export default function Orders() {
                                                     <SelectItem value="Returned">Returned</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            <Button variant="outline" size="icon" onClick={() => confirmUpdate(order._id)}>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => confirmUpdate(order._id)}
+                                                disabled={isUpdating || isConfirmDialogOpen}
+                                            >
                                                 <Truck className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -423,7 +434,12 @@ export default function Orders() {
                                                 onChange={(e) => handleTrackingIdChange(order._id, e.target.value)}
                                                 className="w-[150px]"
                                             />
-                                            <Button variant="outline" size="icon" onClick={() => confirmUpdate(order._id)}>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() => confirmUpdate(order._id)}
+                                                disabled={isUpdating || isConfirmDialogOpen}
+                                            >
                                                 <Truck className="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -553,13 +569,13 @@ export default function Orders() {
                                                                                 <TableRow key={index}>
                                                                                     <TableCell>
                                                                                         <div className="flex items-center gap-3">
-                                                                                                <Image
-                                                                                                    src={item.image || "/placeholder.svg"}
-                                                                                                    alt={item.name}
-                                                                                                    width={40}
-                                                                                                    height={40}
-                                                                                                    className="object-cover rounded-md"
-                                                                                                />
+                                                                                            <Image
+                                                                                                src={item.image || "/placeholder.svg"}
+                                                                                                alt={item.name}
+                                                                                                width={40}
+                                                                                                height={40}
+                                                                                                className="object-cover rounded-md"
+                                                                                            />
                                                                                             <div>
                                                                                                 <div className="font-medium">{item.name}</div>
                                                                                             </div>
@@ -584,10 +600,10 @@ export default function Orders() {
                                                                                     </TableCell>
                                                                                     <TableCell>{item.quantity}</TableCell>
                                                                                     <TableCell>
-                                                                                        ${item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}
+                                                                                        Rs {item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}
                                                                                     </TableCell>
                                                                                     <TableCell>
-                                                                                        $
+                                                                                        Rs{" "}
                                                                                         {item.priceOption?.price
                                                                                             ? (item.quantity * item.priceOption.price).toFixed(2)
                                                                                             : "0.00"}
@@ -606,19 +622,19 @@ export default function Orders() {
                                                                     <div className="space-y-2">
                                                                         <div className="flex justify-between">
                                                                             <span className="text-muted-foreground">Subtotal:</span>
-                                                                            <span>${currentOrder.subtotal.toFixed(2)}</span>
+                                                                            <span>Rs {currentOrder.subtotal.toFixed(2)}</span>
                                                                         </div>
                                                                         <div className="flex justify-between">
                                                                             <span className="text-muted-foreground">Shipping:</span>
-                                                                            <span>${currentOrder.shippingCost.toFixed(2)}</span>
+                                                                            <span>Rs {currentOrder.shippingCost.toFixed(2)}</span>
                                                                         </div>
                                                                         <div className="flex justify-between">
                                                                             <span className="text-muted-foreground">Discount:</span>
-                                                                            <span>-${currentOrder.discount.toFixed(2)}</span>
+                                                                            <span>-Rs {currentOrder.discount.toFixed(2)}</span>
                                                                         </div>
                                                                         <div className="flex justify-between font-bold text-lg pt-2 border-t">
                                                                             <span>Total:</span>
-                                                                            <span>${currentOrder.totalAmount.toFixed(2)}</span>
+                                                                            <span>Rs {currentOrder.totalAmount.toFixed(2)}</span>
                                                                         </div>
                                                                     </div>
                                                                 </CardContent>
@@ -675,11 +691,12 @@ export default function Orders() {
                         <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={submitUpdate}>Confirm</Button>
+                        <Button onClick={submitUpdate} disabled={isUpdating}>
+                            {isUpdating ? "Updating..." : "Confirm"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
     )
 }
-

@@ -153,7 +153,7 @@ export default function VerifyPhonePage() {
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="text-2xl">Verify Your Phone</CardTitle>
-                    <CardDescription>Enter the verification code sent to {phone}</CardDescription>
+                    <CardDescription>Enter the otp code sent to {phone} Whatsapp</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>

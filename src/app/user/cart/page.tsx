@@ -67,7 +67,7 @@ export default function CartPage() {
                     <h2 className="mt-4 text-2xl font-bold text-gray-900">Your cart is empty</h2>
                     <p className="mt-2 text-gray-500">Looks like you haven&apos;t added any products to your cart yet.</p>
                     <div className="mt-6">
-                        <Link href="/user/products">
+                        <Link href="/products">
                             <Button className="bg-purple-600 hover:bg-purple-700">
                                 Continue Shopping
                             </Button>
@@ -183,7 +183,7 @@ export default function CartPage() {
                                     <Trash2 className="h-4 w-4 mr-1" />
                                     Clear Cart
                                 </button>
-                                <Link href="/user/products" className="text-sm text-purple-600 hover:text-purple-800 flex items-center">
+                                <Link href="/products" className="text-sm text-purple-600 hover:text-purple-800 flex items-center">
                                     <RefreshCw className="h-4 w-4 mr-1" />
                                     Update Cart
                                 </Link>
@@ -225,7 +225,7 @@ export default function CartPage() {
                             </div>
 
                             <div className="mt-4">
-                                <Link href="/user/products">
+                                <Link href="/products">
                                     <Button variant="outline" className="w-full">
                                         Continue Shopping
                                     </Button>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ArrowRight, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+
 
 type AdBannerProps = {
     id?: string
@@ -44,6 +46,7 @@ export function PremiumAdBanner({
         seconds: number
     } | null>(null)
     const [isVisible] = useState(true)
+    const router = useRouter();
 
     // Calculate and update time remaining
     useEffect(() => {
@@ -75,11 +78,11 @@ export function PremiumAdBanner({
 
     const handleClick = () => {
         if (onClick) {
-            onClick()
+            onClick();
         } else if (ctaUrl) {
-            window.location.href = ctaUrl
+            router.push(ctaUrl); // Client-side navigation, no reload
         }
-    }
+    };
 
     
 
