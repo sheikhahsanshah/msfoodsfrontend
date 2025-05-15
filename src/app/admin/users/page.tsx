@@ -16,7 +16,7 @@ import {
     ChevronRight,
     Mail,
     Phone,
-    Users,
+    // Users,
     CalendarDays,
     MapPin,
     ShoppingBag,
@@ -1915,7 +1915,7 @@ function UserDetails({ user }: { user: User }) {
 }
 
 // SignupMethodStats Component
-function SignupMethodStats({ stats }: { stats: UserStats | null }) {
+function SignupMethodStats({  }: { stats: UserStats | null }) {
     const [activeTab, setActiveTab] = useState<"email" | "phone">("email")
     const [users, setUsers] = useState<User[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -1963,8 +1963,8 @@ function SignupMethodStats({ stats }: { stats: UserStats | null }) {
     }, [activeTab, fetchUsersByMethod])
 
     // Calculate counts from stats if available
-    const emailCount = stats?.totalUsers?.[0]?.count || 0
-    const phoneCount = stats?.totalUsers?.[0]?.count || 0
+    // const emailCount = stats?.totalUsers?.[0]?.count || 0
+    // const phoneCount = stats?.totalUsers?.[0]?.count || 0
 
     return (
         <Card>
@@ -1973,7 +1973,7 @@ function SignupMethodStats({ stats }: { stats: UserStats | null }) {
                 <CardDescription>View users based on their registration method</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Card>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
@@ -2010,12 +2010,12 @@ function SignupMethodStats({ stats }: { stats: UserStats | null }) {
                                     <h3 className="text-lg font-medium">Both Methods</h3>
                                 </div>
                                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                                    {/* This would need to be calculated from your stats */}-
+                                   -
                                 </Badge>
                             </div>
                         </CardContent>
                     </Card>
-                </div>
+                </div> */}
 
                 <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "email" | "phone")}>
                     <TabsList className="mb-4">

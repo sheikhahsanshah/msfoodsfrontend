@@ -39,9 +39,13 @@ export default function Sales() {
             } else {
                 queryParams.append("period", timeRange)
             }
-
+            const token = localStorage.getItem("accessToken")
             const response = await fetch(`${API_URL}/api/orders/sales?${queryParams}`, {
                 credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
             })
 
             if (!response.ok) {
