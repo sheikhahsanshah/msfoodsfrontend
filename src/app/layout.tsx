@@ -62,13 +62,18 @@ export default function RootLayout({
             <head>
                 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
                 <link rel="canonical" href="https://www.msfoods.com" />
+                {/* ✅ Google Site Verification Meta Tag */}
+                <meta
+                    name="google-site-verification"
+                    content="UtDj9ilshFvt0b9C_aOhvWtjUFD01rn-1627aRfSvjw"
+                />
             </head>
             <body className={dmSans.className}>
                 <UserProvider>
                     <SessionWrapper>
-                    <CartProvider>
-                        <AdProvider>{children}</AdProvider>
-                        <Toaster />
+                        <CartProvider>
+                            <AdProvider>{children}</AdProvider>
+                            <Toaster />
                         </CartProvider>
                     </SessionWrapper>
                 </UserProvider>
