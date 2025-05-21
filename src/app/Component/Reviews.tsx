@@ -91,7 +91,7 @@ export default function ReviewsSection() {
     <section className="container mx-auto px-4 py-8">
       {/* Hero Image - Different for mobile and desktop */}
       <div className="flex justify-center items-center ms-4 ">
-        <h2 className="text-2xl font-bold">Hear From Our Customers</h2>
+        <h2 className="text-2xl font-bold">Hear From Us</h2>
       </div>
       
 
