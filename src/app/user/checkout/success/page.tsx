@@ -64,7 +64,7 @@ export default function OrderSuccessPage() {
                         <Button variant="outline">Continue Shopping</Button>
                     </Link>
 
-                    <Link href="/account/orders">
+                    <Link href="/user/dashboard/order-history">
                         <Button className="bg-purple-600 hover:bg-purple-700 flex items-center">
                             View Order History
                             <ArrowRight className="ml-2 h-4 w-4" />

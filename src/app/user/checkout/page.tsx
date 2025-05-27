@@ -43,7 +43,8 @@ export default function CheckoutPage() {
     const [couponApplied, setCouponApplied] = useState(false)
     const [couponDiscount, setCouponDiscount] = useState(0)
     const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(true)
-    const [shippingCost, setShippingCost] = useState(150)
+    const [shippingFee, setShippingFee] = useState(150)
+    const [freeShippingThreshold, setFreeShippingThreshold] = useState(3000)
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -53,11 +54,18 @@ export default function CheckoutPage() {
         postalCode: "",
         country: "Pakistan",
     })
+    const [phoneError, setPhoneError] = useState("");
+   
 
     // Calculate order summary
     const subtotal = getTotalPrice()
     const discount = couponApplied ? couponDiscount : 0
-    const orderTotal = subtotal + shippingCost - discount
+    // shippingCost is now derived
+    const codFee = paymentMethod === 'COD' ? 50 : 0;
+
+    // update how you derive shippingCost & orderTotal:
+    const shippingCost = subtotal > freeShippingThreshold ? 0 : shippingFee;
+    const orderTotal = subtotal + shippingCost + codFee - discount;
 
     // Fetch shipping cost from backend
     const fetchShippingCost = useCallback(async () => {
@@ -67,7 +75,8 @@ export default function CheckoutPage() {
             })
             const data = await response.json()
             if (data.shippingFee) {
-                setShippingCost(data.shippingFee)
+                setShippingFee(data.shippingFee ?? 0);
+                setFreeShippingThreshold(data.freeShippingThreshold ?? 3000);
             }
         } catch (error) {
             console.error("Failed to fetch shipping cost:", error)
@@ -97,10 +106,17 @@ export default function CheckoutPage() {
         fetchShippingCost()
     }, [fetchShippingCost])
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({ ...prev, [name]: value }))
-    }
+   
+
+ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        if (name === "phone") {
+            // Regex for +92 followed by 10 digits
+            const isValid = /^\+92\d{10}$/.test(value);
+            setPhoneError(isValid || value === "" ? "" : "Phone must be in format +923123456789");
+        }
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) {
@@ -310,6 +326,7 @@ export default function CheckoutPage() {
                         subtotal={subtotal}
                         shippingCost={shippingCost}
                         discount={discount}
+                        codFee={codFee} 
                         orderTotal={orderTotal}
                         isOpen={isOrderSummaryOpen}
                         setIsOpen={setIsOrderSummaryOpen}
@@ -361,7 +378,11 @@ export default function CheckoutPage() {
                                             value={formData.phone}
                                             onChange={handleInputChange}
                                             required
+                                            placeholder="+923123456789"
                                         />
+                                        {phoneError && (
+                                            <p className="text-red-500 text-xs mt-1">{phoneError}</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -438,6 +459,7 @@ export default function CheckoutPage() {
                                 subtotal={subtotal}
                                 shippingCost={shippingCost}
                                 discount={discount}
+                                codFee={codFee}   
                                 orderTotal={orderTotal}
                                 isOpen={true}
                                 setIsOpen={() => { }}
@@ -462,7 +484,7 @@ export default function CheckoutPage() {
                             <div className="mt-6 space-y-4">
                                 <div className="flex items-center text-sm text-gray-500">
                                     <Truck className="h-5 w-5 mr-2 text-gray-400" />
-                                    <span>Free shipping on orders over Rs.2,000</span>
+                                    Free shipping on orders over Rs.{freeShippingThreshold.toLocaleString()}
                                 </div>
                                 <div className="flex items-center text-sm text-gray-500">
                                     <ShieldCheck className="h-5 w-5 mr-2 text-gray-400" />
@@ -493,6 +515,7 @@ interface OrderSummaryProps {
     subtotal: number
     shippingCost: number
     discount: number
+    codFee: number
     orderTotal: number
     isOpen: boolean
     setIsOpen: (isOpen: boolean) => void
@@ -510,6 +533,7 @@ function OrderSummaryCollapsible({
     subtotal,
     shippingCost,
     discount,
+    codFee ,
     orderTotal,
     isOpen,
     setIsOpen,
@@ -542,6 +566,7 @@ function OrderSummaryCollapsible({
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
+                    
                     <Separator />
                     <div className="p-6">
                         <div className="max-h-80 overflow-y-auto mb-4">
@@ -627,7 +652,14 @@ function OrderSummaryCollapsible({
                             )}
 
                             <Separator />
-
+                            {codFee > 0 && (
+                                <div className="flex justify-between">
+                                    <p className="text-sm text-gray-600">COD Surcharge</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        Rs.{codFee.toLocaleString()}
+                                    </p>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <p className="text-base font-medium text-gray-900">Total</p>
                                 <p className="text-base font-medium text-gray-900">Rs.{orderTotal.toLocaleString()}</p>

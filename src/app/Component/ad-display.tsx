@@ -137,7 +137,6 @@ export function AdDisplay({ location, className, onClick }: AdDisplayProps) {
                 <div className="p-3">
                     {currentAd.title && <h3 className="font-medium text-foreground">{currentAd.title}</h3>}
                     {currentAd.text && <p className="mt-1 text-sm text-muted-foreground">{currentAd.text}</p>}
-
                     <div className="mt-2 flex items-center text-xs text-muted-foreground">
                         <ExternalLink className="mr-1 h-3 w-3" />
                         <span>Sponsored</span>

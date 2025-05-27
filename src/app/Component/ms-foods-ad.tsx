@@ -34,17 +34,7 @@ export function MSFoodsAd({ location, className }: MSFoodsAdProps) {
 
     // If no ads available, show a default ad
     if (!currentAd) {
-        return (
-            <PremiumAdBanner
-                location={location}
-                title="big sale comming"
-                text="this is the bi sale on all the store"
-                endDate={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()} // 7 days from now
-                backgroundColor="#FFF8E1" // Warm cream background
-                textColor="#5D4037" // Deep brown text
-                className={className}
-            />
-        )
+        return null
     }
 
     // Return the current ad with updated color scheme

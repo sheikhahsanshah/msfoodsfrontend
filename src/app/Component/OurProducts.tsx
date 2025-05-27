@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-// import { toast } from "@/components/ui/use-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com";
 
@@ -28,6 +27,7 @@ export default function ProductGrid() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [visibleCount, setVisibleCount] = useState(4); // Pagination state
 
     useEffect(() => {
         fetchProducts();
@@ -54,8 +54,6 @@ export default function ProductGrid() {
         }
     };
 
-   
-
     if (isLoading) {
         return (
             <div className="container mx-auto px-4 py-8">
@@ -65,16 +63,11 @@ export default function ProductGrid() {
                             key={index}
                             className="animate-pulse group flex flex-col overflow-hidden h-full bg-gray-100 rounded-lg"
                         >
-                            {/* Skeleton for Image */}
                             <div className="aspect-square bg-gray-300"></div>
-
-                            {/* Skeleton for Content */}
                             <div className="p-3 md:p-5 flex flex-col flex-grow">
                                 <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
                                 <div className="h-4 bg-gray-300 rounded w-1/2"></div>
                             </div>
-
-                            {/* Skeleton for Button */}
                             <div className="p-3 md:p-5 pt-0 mt-auto">
                                 <div className="h-10 bg-gray-300 rounded-full"></div>
                             </div>
@@ -84,7 +77,6 @@ export default function ProductGrid() {
             </div>
         );
     }
-
 
     if (error) {
         return <div className="text-center text-red-500">{error}</div>;
@@ -109,40 +101,42 @@ export default function ProductGrid() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {products.map((product) => {
+                {products.slice(0, visibleCount).map((product) => {
                     const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price);
                     const lowestPriceOption = sortedPrices[0];
                     const displayPrice = lowestPriceOption?.salePrice || lowestPriceOption?.price;
+                    const isOnSale = product.priceOptions.some(
+                        (option) => option.salePrice !== null && option.salePrice !== undefined,
+                    );
 
                     return (
                         <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
                             <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
-
-                                {/* Product Image */}
                                 <CardHeader className="p-0 relative aspect-square bg-white overflow-hidden h-58">
                                     <Image
                                         src={product.images[0]?.url || "/placeholder.svg"}
                                         alt={product.name}
                                         width={900}
                                         height={900}
-                                        className=" w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                        className="w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
                                     />
+                                    {isOnSale && (
+                                        <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold z-10">
+                                            SALE
+                                        </div>
+                                    )}
                                 </CardHeader>
 
-                                {/* Product Info */}
                                 <CardContent className="p-5 flex flex-col flex-grow">
                                     <div className="text-sm text-[#1D1D1D]">
                                         {product.priceOptions.length > 1 ? "From " : ""}
                                         {displayPrice ? `Rs. ${displayPrice.toFixed(2)}` : "Price not available"}
                                     </div>
-
                                     <h3 className="font-semibold text-[17px] md:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
                                         {product.name}
                                     </h3>
                                 </CardContent>
                             </Link>
-
-                            {/* Buy Now Button */}
                             <CardFooter className="p-5 pt-0 mt-auto">
                                 <Link href={`/user/product/${product._id}`} className="w-full">
                                     <Button
@@ -158,6 +152,17 @@ export default function ProductGrid() {
                 })}
             </div>
 
+            {visibleCount < products.length && (
+                <div className="mt-6 text-center">
+                    <Button
+                        onClick={() => setVisibleCount((prev) => prev + 8)}
+                        className="rounded-full border-black hover:bg-black hover:text-white"
+                        variant="outline"
+                    >
+                        Show More
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

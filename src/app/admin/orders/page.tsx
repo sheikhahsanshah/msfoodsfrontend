@@ -86,8 +86,7 @@ export default function Orders() {
         try {
             setIsLoading(true)
             const response = await authFetch(
-                `${API_URL}/api/orders?page=${currentPage}&limit=${itemsPerPage}${searchTerm ? `&search=${searchTerm}` : ""
-                }${statusFilter ? `&status=${statusFilter}` : ""}`,
+                `${API_URL}/api/orders?page=${currentPage}&limit=${itemsPerPage}${statusFilter ? `&status=${statusFilter}` : ""}`,
             )
 
             if (!response.ok) {
@@ -113,7 +112,7 @@ export default function Orders() {
         } finally {
             setIsLoading(false)
         }
-    }, [currentPage, itemsPerPage, searchTerm, statusFilter, toast])
+    }, [currentPage, itemsPerPage, statusFilter, toast])
 
     useEffect(() => {
         fetchOrders()
@@ -165,6 +164,16 @@ export default function Orders() {
     //     },
     //     removeAfterPrint: true,
     // })
+
+
+    const filteredOrders = orders.filter((order) => {
+        const term = searchTerm.toLowerCase();
+        return (
+            order._id.toLowerCase().includes(term) ||
+            order.shippingAddress.fullName.toLowerCase().includes(term) ||
+            order.shippingAddress.email.toLowerCase().includes(term)
+        );
+    });
 
     const submitUpdate = async () => {
         if (!pendingUpdate || isUpdating) return
@@ -394,7 +403,7 @@ export default function Orders() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {orders.map((order) => (
+                                    {filteredOrders.map((order) => (
                                 <TableRow key={order._id}>
                                     <TableCell className="font-medium">{order._id.substring(0, 8)}...</TableCell>
                                     <TableCell>{order.user ? order.user.name : order.shippingAddress.fullName}</TableCell>
