@@ -246,20 +246,17 @@ export default function CheckoutPage() {
                 credentials: "include",
             })
 
-            const data = await response.json()
+            const result = await response.json()
 
-            if (!response.ok) throw new Error(data.message || "Order failed")
+            if (!response.ok) throw new Error(result.message || "Order failed")
 
-            // Handle payment redirect
-            if (paymentMethod === "PayFast" && data.data?.paymentResult?.redirectUrl) {
-
-                // Send them to “pending” first, carrying the orderId
-                clearCart()
-                router.push(`/user/checkout/pending?orderId=${data.data._id}`);
-            } else {
-                clearCart();
-                router.push("/user/checkout/success");
+            // If PayFast, redirect immediately
+            if (paymentMethod === "PayFast" && result.data.paymentResult.redirectUrl) {
+                window.location.href = result.data.paymentResult.redirectUrl
+                return
             }
+            clearCart()
+            router.push("/user/checkout/success")
         } catch (error) {
             toast({
                 title: "Order Error",
