@@ -30,7 +30,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import Cookies from "js-cookie"
 
 const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://msfoodsbackend.vercel.app";
 
 export default function CheckoutPage() {
     const { cart, getTotalPrice, clearCart } = useCart()
@@ -55,7 +56,7 @@ export default function CheckoutPage() {
         country: "Pakistan",
     })
     const [phoneError, setPhoneError] = useState("");
-   
+
 
     // Calculate order summary
     const subtotal = getTotalPrice()
@@ -67,6 +68,8 @@ export default function CheckoutPage() {
     const shippingCost = subtotal > freeShippingThreshold ? 0 : shippingFee;
     const orderTotal = subtotal + shippingCost + codFee - discount;
 
+    
+    
     // Fetch shipping cost from backend
     const fetchShippingCost = useCallback(async () => {
         try {
@@ -84,7 +87,7 @@ export default function CheckoutPage() {
                 title: "Error",
                 description: "Failed to fetch shipping cost. Using default value.",
                 variant: "destructive",
-                 duration: 1000,
+                duration: 1000,
             })
         }
     }, [toast])
@@ -106,9 +109,9 @@ export default function CheckoutPage() {
         fetchShippingCost()
     }, [fetchShippingCost])
 
-   
 
- const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         if (name === "phone") {
             // Regex for +92 followed by 10 digits
@@ -134,7 +137,7 @@ export default function CheckoutPage() {
                 title: "Authentication Required",
                 description: "Please log in to apply a coupon code",
                 variant: "destructive",
-                 duration: 1000,
+                duration: 1000,
             })
             return
         }
@@ -167,7 +170,7 @@ export default function CheckoutPage() {
                 toast({
                     title: "Coupon applied!",
                     description: `You saved Rs.${data.data.discount.toLocaleString()}`,
-                     duration: 1000,
+                    duration: 1000,
                 })
             } else {
                 throw new Error(data.message || "Invalid coupon code")
@@ -249,10 +252,13 @@ export default function CheckoutPage() {
 
             // Handle payment redirect
             if (paymentMethod === "PayFast" && data.data?.paymentResult?.redirectUrl) {
-                window.location.href = data.data.paymentResult.redirectUrl
-            } else {
+
+                // Send them to “pending” first, carrying the orderId
                 clearCart()
-                router.push("/user/checkout/success")
+                router.push(`/user/checkout/pending?orderId=${data.data._id}`);
+            } else {
+                clearCart();
+                router.push("/user/checkout/success");
             }
         } catch (error) {
             toast({
@@ -326,7 +332,7 @@ export default function CheckoutPage() {
                         subtotal={subtotal}
                         shippingCost={shippingCost}
                         discount={discount}
-                        codFee={codFee} 
+                        codFee={codFee}
                         orderTotal={orderTotal}
                         isOpen={isOrderSummaryOpen}
                         setIsOpen={setIsOrderSummaryOpen}
@@ -393,7 +399,7 @@ export default function CheckoutPage() {
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
                                         <Label htmlFor="address">Street Address</Label>
-                                        <Input id="address" name="address" value={formData.address} onChange={handleInputChange} required />
+                                        <Input id="address" required name="address" value={formData.address} onChange={handleInputChange} />
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
@@ -407,7 +413,7 @@ export default function CheckoutPage() {
                                                 name="postalCode"
                                                 value={formData.postalCode}
                                                 onChange={handleInputChange}
-                                                required
+
                                             />
                                         </div>
                                     </div>
@@ -459,7 +465,7 @@ export default function CheckoutPage() {
                                 subtotal={subtotal}
                                 shippingCost={shippingCost}
                                 discount={discount}
-                                codFee={codFee}   
+                                codFee={codFee}
                                 orderTotal={orderTotal}
                                 isOpen={true}
                                 setIsOpen={() => { }}
@@ -533,7 +539,7 @@ function OrderSummaryCollapsible({
     subtotal,
     shippingCost,
     discount,
-    codFee ,
+    codFee,
     orderTotal,
     isOpen,
     setIsOpen,
@@ -566,7 +572,7 @@ function OrderSummaryCollapsible({
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
-                    
+
                     <Separator />
                     <div className="p-6">
                         <div className="max-h-80 overflow-y-auto mb-4">

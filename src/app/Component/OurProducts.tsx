@@ -27,7 +27,12 @@ export default function ProductGrid() {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [visibleCount, setVisibleCount] = useState(4); // Pagination state
+    const isMobile = typeof window !== 'undefined'
+        ? window.innerWidth < 768
+        : false;
+
+    // In your state:
+    const [visibleCount, setVisibleCount] = useState(isMobile ? 6 : 8);
 
     useEffect(() => {
         fetchProducts();
@@ -155,7 +160,7 @@ export default function ProductGrid() {
             {visibleCount < products.length && (
                 <div className="mt-6 text-center">
                     <Button
-                        onClick={() => setVisibleCount((prev) => prev + 8)}
+                        onClick={() => setVisibleCount(prev => prev + (isMobile ? 6 : 8))}
                         className="rounded-full border-black hover:bg-black hover:text-white"
                         variant="outline"
                     >

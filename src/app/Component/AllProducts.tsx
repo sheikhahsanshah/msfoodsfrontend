@@ -60,7 +60,9 @@ export default function AllProducts() {
     const [categories, setCategories] = useState<Category[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
+    // right after your other useState() calls:
+    const perBatch = 10
+    const [visibleCount, setVisibleCount] = useState(perBatch)
     // Filter and sort states
     const [filters, setFilters] = useState<FilterState>({
         availability: {
@@ -90,6 +92,7 @@ export default function AllProducts() {
 
     useEffect(() => {
         applyFiltersAndSort()
+        setVisibleCount(perBatch)        // <— reset whenever the list changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [products, filters, sortBy])
 
@@ -584,8 +587,8 @@ export default function AllProducts() {
                                         <div className="space-y-3">
                                             <button
                                                 className={`flex items-center justify-between w-full p-3 rounded-lg border ${filters.availability.inStock
-                                                        ? "border-black bg-black text-white"
-                                                        : "border-gray-200 hover:border-gray-300"
+                                                    ? "border-black bg-black text-white"
+                                                    : "border-gray-200 hover:border-gray-300"
                                                     }`}
                                                 onClick={() => handleAvailabilityChange("inStock")}
                                             >
@@ -600,8 +603,8 @@ export default function AllProducts() {
 
                                             <button
                                                 className={`flex items-center justify-between w-full p-3 rounded-lg border ${filters.availability.outOfStock
-                                                        ? "border-black bg-black text-white"
-                                                        : "border-gray-200 hover:border-gray-300"
+                                                    ? "border-black bg-black text-white"
+                                                    : "border-gray-200 hover:border-gray-300"
                                                     }`}
                                                 onClick={() => handleAvailabilityChange("outOfStock")}
                                             >
@@ -616,8 +619,8 @@ export default function AllProducts() {
 
                                             <button
                                                 className={`flex items-center justify-between w-full p-3 rounded-lg border ${filters.onSale
-                                                        ? "border-red-500 bg-red-500 text-white"
-                                                        : "border-gray-200 hover:border-gray-300"
+                                                    ? "border-red-500 bg-red-500 text-white"
+                                                    : "border-gray-200 hover:border-gray-300"
                                                     }`}
                                                 onClick={handleOnSaleChange}
                                             >
@@ -688,7 +691,6 @@ export default function AllProducts() {
                 )}
             </div>
 
-            {/* Product count */}
             <div className="mb-6 text-gray-600">
                 {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""}
             </div>
@@ -696,7 +698,9 @@ export default function AllProducts() {
             {filteredProducts.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl">
                     <h3 className="text-xl font-medium mb-2">No products match your filters</h3>
-                    <p className="text-gray-600 mb-4">Try adjusting your filters or browse our full collection</p>
+                    <p className="text-gray-600 mb-4">
+                        Try adjusting your filters or browse our full collection
+                    </p>
                     <Button
                         variant="outline"
                         className="rounded-lg border-black text-black hover:bg-black hover:text-white"
@@ -710,81 +714,89 @@ export default function AllProducts() {
                     </Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    {filteredProducts.map((product) => {
-                        const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price)
-                        const lowestPriceOption = sortedPrices[0]
-                        const displayPrice = lowestPriceOption?.salePrice || lowestPriceOption?.price
-                        const isOnSale = product.priceOptions.some(
-                            (option) => option.salePrice !== null && option.salePrice !== undefined,
-                        )
+                <>
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                        {filteredProducts.slice(0, visibleCount).map((product) => {
+                            // move consts out of JSX
+                            const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price)
+                            const lowestPriceOption = sortedPrices[0]
+                            const displayPrice = lowestPriceOption?.salePrice ?? lowestPriceOption?.price
+                            const isOnSale = product.priceOptions.some(
+                                (option) => option.salePrice != null
+                            )
 
-                        return (
-                            <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
-                                <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
-                                    {/* Image Section */}
-                                    <CardHeader className="p-0 relative  aspect-square bg-white overflow-hidden h-58 ">
-                                        <Image
-                                            src={product.images[0]?.url || "/placeholder.svg"}
-                                            alt={product.name}
-                                            width={900}
-                                            height={900}
-                                            className=" w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
-                                        />
-                                        {isOnSale && (
-                                            <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold z-10">
-                                                SALE
-                                            </div>
-                                        )}
-                                    </CardHeader>
-                                   
-
-                                    {/* Price & Name */}
-                                    <CardContent className="p-3 md:p-5 flex flex-col flex-grow border-t">
-                                        <div className="text-sm text-[#1D1D1D]">
-                                            {product.priceOptions.length > 1 ? "From " : ""}
-                                            {lowestPriceOption?.salePrice ? (
-                                                <>
-                                                    <span className="line-through text-gray-500 mr-2">
-                                                        Rs. {lowestPriceOption.price.toFixed(2)}
-                                                    </span>
-                                                    <span className="text-red-500">
-                                                        Rs. {lowestPriceOption.salePrice.toFixed(2)}
-                                                    </span>
-                                                </>
-                                            ) : displayPrice ? (
-                                                `Rs. ${displayPrice.toFixed(2)}`
-                                            ) : (
-                                                "Price not available"
+                            return (
+                                <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
+                                    <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
+                                        {/* Image Section */}
+                                        <CardHeader className="p-0 relative aspect-square bg-white overflow-hidden">
+                                            <Image
+                                                src={product.images[0]?.url || "/placeholder.svg"}
+                                                alt={product.name}
+                                                width={900}
+                                                height={900}
+                                                className="w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                            />
+                                            {isOnSale && (
+                                                <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold z-10">
+                                                    SALE
+                                                </div>
                                             )}
-                                        </div>
+                                        </CardHeader>
 
-                                        <h3 className="font-semibold text-[15px] md:text-[17px] lg:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
-                                            {product.name}
-                                        </h3>
-                                    </CardContent>
-                                </Link>
-
-                                {/* CTA Button */}
-                                <CardFooter className="p-3 md:p-5 pt-0 mt-auto">
-                                    <Link href={`/user/product/${product._id}`} className="w-full">
-                                        <Button
-                                            variant="outline"
-                                            className="w-full text-sm md:text-base rounded-full border-black hover:bg-black hover:text-white"
-                                        >
-                                            Buy now
-                                        </Button>
+                                        {/* Price & Name */}
+                                        <CardContent className="p-3 md:p-5 flex flex-col flex-grow border-t">
+                                            <div className="text-sm text-[#1D1D1D]">
+                                                {product.priceOptions.length > 1 && "From "}
+                                                {lowestPriceOption?.salePrice != null ? (
+                                                    <>
+                                                        <span className="line-through text-gray-500 mr-2">
+                                                            Rs. {lowestPriceOption.price.toFixed(2)}
+                                                        </span>
+                                                        <span className="text-red-500">
+                                                            Rs. {lowestPriceOption.salePrice.toFixed(2)}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    `Rs. ${displayPrice.toFixed(2)}`
+                                                )}
+                                            </div>
+                                            <h3 className="font-semibold text-[15px] md:text-[17px] lg:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
+                                                {product.name}
+                                            </h3>
+                                        </CardContent>
                                     </Link>
-                                </CardFooter>
-                            </Card>
 
+                                    {/* CTA Button */}
+                                    <CardFooter className="p-3 md:p-5 pt-0 mt-auto">
+                                        <Link href={`/user/product/${product._id}`} className="w-full">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full text-sm md:text-base rounded-full border-black hover:bg-black hover:text-white"
+                                            >
+                                                Buy now
+                                            </Button>
+                                        </Link>
+                                    </CardFooter>
+                                </Card>
+                            )
+                        })}
+                    </div>
 
-
-                        )
-                    })}
-                </div>
+                    {/* Show More button */}
+                    {visibleCount < filteredProducts.length && (
+                        <div className="mt-8 text-center">
+                            <Button
+                                onClick={() => setVisibleCount((vc) => vc + perBatch)}
+                                variant="outline"
+                                className="rounded-full border-black hover:bg-black hover:text-white"
+                            >
+                                Show more
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     )
 }
-
