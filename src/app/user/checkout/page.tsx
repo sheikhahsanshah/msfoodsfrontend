@@ -109,14 +109,34 @@ export default function CheckoutPage() {
         fetchShippingCost()
     }, [fetchShippingCost])
 
-
+    const handlePhoneBlur = () => {
+        let phone = formData.phone.trim()
+        // if they typed 0XXXXXXXXXX, turn it into +92XXXXXXXXXX
+        if (/^0\d{10}$/.test(phone)) {
+            phone = `+92${phone.slice(1)}`
+            setFormData(prev => ({ ...prev, phone }))
+            setPhoneError("")
+        }
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         if (name === "phone") {
-            // Regex for +92 followed by 10 digits
-            const isValid = /^\+92\d{10}$/.test(value);
-            setPhoneError(isValid || value === "" ? "" : "Phone must be in format +923123456789");
+            // strip spaces
+            const val = value.trim()
+
+            // valid if either +92XXXXXXXXXX or 0XXXXXXXXXX
+            const intlRegex = /^\+92\d{10}$/
+            const localRegex = /^0\d{10}$/
+            if (val === "" || intlRegex.test(val) || localRegex.test(val)) {
+                setPhoneError("")
+            } else {
+                setPhoneError("Must be 0XXXXXXXXXX or +92XXXXXXXXXX")
+            }
+
+            // always store raw user input, normalization happens on blur or submit
+            setFormData(prev => ({ ...prev, phone: val }))
+            return
         }
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
@@ -380,8 +400,9 @@ export default function CheckoutPage() {
                                             type="tel"
                                             value={formData.phone}
                                             onChange={handleInputChange}
+                                            onBlur={handlePhoneBlur}
                                             required
-                                            placeholder="+923123456789"
+                                            placeholder="03211234567"
                                         />
                                         {phoneError && (
                                             <p className="text-red-500 text-xs mt-1">{phoneError}</p>

@@ -43,14 +43,24 @@ const emailLoginSchema = z.object({
 })
 
 const phoneLoginSchema = z.object({
-    identifier: z
-        .string()
-        .regex(
+    identifier: z.preprocess((raw) => {
+        if (typeof raw !== "string") return raw
+        const v = raw.trim()
+        // if they typed 0XXXXXXXXXX, upgrade it
+        if (/^0\d{10}$/.test(v)) {
+            return `+92${v.slice(1)}`
+        }
+        return v
+    },
+        // now only accept +92XXXXXXXXXX
+        z.string().regex(
             /^\+92\d{10}$/,
-            "Phone must start with +92 followed by 10 digits (e.g. +923001234567)"
-        ),
+            "Phone must be in format 03XXXXXXXXX or +92XXXXXXXXX"
+        )),
     password: z.string().min(1, "Password is required"),
 })
+
+
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
@@ -71,6 +81,8 @@ export default function LoginPage() {
     const phoneForm = useForm<z.infer<typeof phoneLoginSchema>>({
         resolver: zodResolver(phoneLoginSchema),
         defaultValues: { identifier: "", password: "" },
+        mode: "onBlur",        // ← validate when they leave the field
+        // mode: "onChange",   // ← or validate as they type
     })
 
     // reset the unused form when the tab changes
@@ -350,24 +362,24 @@ export default function LoginPage() {
                                                     name="identifier"
                                                     render={({ field }) => (
                                                         <FormItem>
-                                                            <FormLabel className="text-sm font-medium text-gray-700">
-                                                                Phone Number
-                                                            </FormLabel>
+                                                            <FormLabel>Phone Number</FormLabel>
                                                             <FormControl>
                                                                 <div className="relative">
                                                                     <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                                                                     <Input
-                                                                        placeholder="+923001234567"
+                                                                        placeholder="03XXXXXXXXX or +923XXXXXXXXX"
                                                                         type="tel"
-                                                                        className="pl-10 h-12 border-gray-200 focus:border-indigo-400 focus:ring-indigo-400 transition-colors"
+                                                                        className="pl-10 h-12"
                                                                         {...field}
                                                                     />
                                                                 </div>
                                                             </FormControl>
-                                                            <FormMessage />
+                                                            {/* this will pick up your Zod error message */}
+                                                            <FormMessage className="text-red-500 text-xs mt-1" />
                                                         </FormItem>
                                                     )}
                                                 />
+
 
                                                 <FormField
                                                     control={phoneForm.control}

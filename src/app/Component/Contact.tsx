@@ -9,6 +9,7 @@ export default function Contact() {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
+        phone:"",
         subject: "",
         message: "",
     });
@@ -25,7 +26,13 @@ export default function Contact() {
         e.preventDefault();
         setIsLoading(true);
         setStatusMessage("");
-
+        // Manual phone validation
+        const phoneRegex = /^03[0-9]{9}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            setIsLoading(false);
+            setStatusMessage("❌ Phone number must be exactly 11 digits and start with 03");
+            return;
+        }
         try {
             const response = await fetch(`${API_URL}/api/send-email`, {
                 method: "POST",
@@ -35,7 +42,7 @@ export default function Contact() {
 
             if (response.ok) {
                 setStatusMessage("✅ Message sent successfully!");
-                setFormData({ name: "", email: "", subject: "", message: "" });
+                setFormData({ name: "", email: "",phone:"", subject: "", message: "" });
             } else {
                 setStatusMessage("❌ Error sending message. Please try again.");
             }
@@ -78,7 +85,19 @@ export default function Contact() {
                                 required
                             />
                         </div>
-
+                        <input
+                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
+                            id="phone"
+                            name="phone"
+                            type="tel"
+                            placeholder="Your Phone *"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            pattern="03[0-9]{9}"
+                            inputMode="numeric"
+                            maxLength={11}
+                            required
+                        />
                         <input
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                             id="subject"
