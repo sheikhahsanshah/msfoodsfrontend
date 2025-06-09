@@ -58,6 +58,7 @@ export default function CheckoutPage() {
     const [phoneError, setPhoneError] = useState("");
 
 
+
     // Calculate order summary
     const subtotal = getTotalPrice()
     const discount = couponApplied ? couponDiscount : 0
@@ -68,8 +69,8 @@ export default function CheckoutPage() {
     const shippingCost = subtotal > freeShippingThreshold ? 0 : shippingFee;
     const orderTotal = subtotal + shippingCost + codFee - discount;
 
-    
-    
+
+
     // Fetch shipping cost from backend
     const fetchShippingCost = useCallback(async () => {
         try {
@@ -275,8 +276,12 @@ export default function CheckoutPage() {
                 window.location.href = result.data.paymentResult.redirectUrl
                 return
             }
+
+            const orderId = result.data.id;        // or json.data._id
+            // push including the orderId
+
             clearCart()
-            router.push("/user/checkout/success")
+            router.push(`/user/checkout/success?orderId=${orderId}`);
         } catch (error) {
             toast({
                 title: "Order Error",
@@ -334,7 +339,7 @@ export default function CheckoutPage() {
                         <AlertTitle>Authentication Required for Coupons</AlertTitle>
                         <AlertDescription>
                             You need to{" "}
-                            <Link href="/login" className="font-medium underline">
+                            <Link href="/auth/login" className="font-medium underline">
                                 log in
                             </Link>{" "}
                             to apply or use coupon codes.
@@ -458,8 +463,8 @@ export default function CheckoutPage() {
                                         </Label>
                                     </div>
                                     <div className="flex items-center space-x-3 border border-gray-200 p-4 rounded-md">
-                                        <RadioGroupItem value="PayFast" id="payfast" />
-                                        <Label htmlFor="payfast" className="flex items-center cursor-pointer">
+                                        <RadioGroupItem value="PayFast" id="payfast" disabled />
+                                        <Label htmlFor="payfast" className="flex items-center cursor-not-allowed opacity-50">
                                             <CreditCard className="h-5 w-5 mr-2 text-gray-600" />
                                             PayFast (Credit/Debit Card)
                                         </Label>

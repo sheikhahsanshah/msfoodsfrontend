@@ -19,7 +19,7 @@ interface Review {
     user: {
         _id: string
         name: string
-    }
+    } | null;  
     rating: number
     comment: string
     images: string[]
@@ -116,8 +116,18 @@ export default function Reviews() {
 
     const handleDeleteReview = async (reviewId: string) => {
         try {
+
+            const token = localStorage.getItem("accessToken")
             const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+                
+               
+              
+
                 method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
                 credentials: "include",
             })
             if (response.ok) {
@@ -167,8 +177,10 @@ export default function Reviews() {
                 <TableBody>
                     {reviews.map((review) => (
                         <TableRow key={review._id}>
-                            <TableCell>{review.product.name}</TableCell>
-                            <TableCell>{review.user.name}</TableCell>
+                            <TableCell>{review.product?.name ?? "Unknown Product"}</TableCell>
+                            <TableCell>
+                                {review.product?.name ?? "Unknown Product"}
+                            </TableCell>
                             <TableCell>{review.rating}</TableCell>
                             <TableCell>{new Date(review.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
@@ -203,7 +215,8 @@ export default function Reviews() {
                                                         <strong>Product:</strong> {currentReview.product.name}
                                                     </p>
                                                     <p>
-                                                        <strong>User:</strong> {currentReview.user.name}
+                                                        <strong>Product:</strong>{" "}
+                                                        {currentReview.product?.name ?? "Unknown Product"}
                                                     </p>
                                                     <p>
                                                         <strong>Rating:</strong> {currentReview.rating}

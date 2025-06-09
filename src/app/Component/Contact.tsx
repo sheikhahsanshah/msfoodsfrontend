@@ -8,7 +8,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://your-backend-api.com
 export default function Contact() {
     const [formData, setFormData] = useState({
         name: "",
-        email: "",
+        // email: "",
         phone:"",
         subject: "",
         message: "",
@@ -42,7 +42,7 @@ export default function Contact() {
 
             if (response.ok) {
                 setStatusMessage("✅ Message sent successfully!");
-                setFormData({ name: "", email: "",phone:"", subject: "", message: "" });
+                setFormData({ name: "",phone:"", subject: "", message: "" });
             } else {
                 setStatusMessage("❌ Error sending message. Please try again.");
             }
@@ -74,7 +74,7 @@ export default function Contact() {
                                 onChange={handleChange}
                                 required
                             />
-                            <input
+                            {/* <input
                                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                                 id="email"
                                 name="email"
@@ -83,21 +83,22 @@ export default function Contact() {
                                 value={formData.email}
                                 onChange={handleChange}
                                 required
+                            /> */}
+                            <input
+                                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                placeholder="Your Phone *"
+                                value={formData.phone}
+                                onChange={handleChange}
+                                pattern="03[0-9]{9}"
+                                inputMode="numeric"
+                                maxLength={11}
+                                required
                             />
                         </div>
-                        <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            placeholder="Your Phone *"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            pattern="03[0-9]{9}"
-                            inputMode="numeric"
-                            maxLength={11}
-                            required
-                        />
+                       
                         <input
                             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-200"
                             id="subject"

@@ -33,6 +33,19 @@ export default function ProductGrid() {
 
     // In your state:
     const [visibleCount, setVisibleCount] = useState(isMobile ? 6 : 8);
+    const bgColors = [
+        'bg-indigo-100',
+        'bg-yellow-100',
+        'bg-lime-100',
+        'bg-amber-100',
+        'bg-orange-100',
+        'bg-emerald-100',
+        'bg-rose-100',
+        'bg-pink-100',
+        'bg-purple-100',
+        'bg-sky-100',
+    ];
+
 
     useEffect(() => {
         fetchProducts();
@@ -107,6 +120,11 @@ export default function ProductGrid() {
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.slice(0, visibleCount).map((product) => {
+                    const bgColor =
+                        bgColors[
+                        Math.floor(Math.random() * bgColors.length)
+                        ];
+
                     const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price);
                     const lowestPriceOption = sortedPrices[0];
                     const displayPrice = lowestPriceOption?.salePrice || lowestPriceOption?.price;
@@ -117,7 +135,7 @@ export default function ProductGrid() {
                     return (
                         <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
                             <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
-                                <CardHeader className="p-0 relative aspect-square bg-white overflow-hidden h-58">
+                                <CardHeader className={`${bgColor} p-0 relative aspect-square  overflow-hidden h-58`}>
                                     <Image
                                         src={product.images[0]?.url || "/placeholder.svg"}
                                         alt={product.name}
@@ -132,7 +150,7 @@ export default function ProductGrid() {
                                     )}
                                 </CardHeader>
 
-                                <CardContent className="p-5 flex flex-col flex-grow">
+                                <CardContent className="p-5 flex flex-col flex-grow">k
                                     <div className="text-sm text-[#1D1D1D]">
                                         {product.priceOptions.length > 1 ? "From " : ""}
                                         {displayPrice ? `Rs. ${displayPrice.toFixed(2)}` : "Price not available"}
