@@ -36,6 +36,7 @@ interface OrderItem {
 }
 
 interface Order {
+    paymentScreenshot: string 
     _id: string
     user: {
         name: string
@@ -58,6 +59,7 @@ interface Order {
         phone: string
     }
     paymentMethod: string
+    paymentStatus: string       // ← add this
     trackingId?: string
     deliveredAt?: string
 }
@@ -81,7 +83,40 @@ export default function Orders() {
     const [isLoading, setIsLoading] = useState(true)
     const orderDetailsRef = useRef<HTMLDivElement>(null)
     const [isUpdating, setIsUpdating] = useState(false)
+    const [isPaymentUpdating, setIsPaymentUpdating] = useState(false)
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false)
 
+    const handlePaymentStatusChange = async (orderId: string, paymentStatus: string) => {
+        setIsPaymentUpdating(true)
+        try {
+            const res = await authFetch(
+                `${API_URL}/api/orders/${orderId}/verify-payment`,
+                {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ paymentStatus }),
+                }
+            )
+            if (!res.ok) {
+                const err = await res.json()
+                throw new Error(err.message || "Failed to update payment status")
+            }
+            toast({
+                title: "Payment Status Updated",
+                description: `Marked ${paymentStatus}`,
+            })
+            fetchOrders()
+
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: err instanceof Error ? err.message : "Unknown error",
+            })
+        } finally {
+            setIsPaymentUpdating(false)
+        }
+    }
     const fetchOrders = useCallback(async () => {
         try {
             setIsLoading(true)
@@ -397,13 +432,14 @@ export default function Orders() {
                                 <TableHead>Customer</TableHead>
                                 <TableHead>Total Amount</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead>Payment</TableHead>
                                 <TableHead>Tracking</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                                    {filteredOrders.map((order) => (
+                            {filteredOrders.map((order) => (
                                 <TableRow key={order._id}>
                                     <TableCell className="font-medium">{order._id.substring(0, 8)}...</TableCell>
                                     <TableCell>{order.user ? order.user.name : order.shippingAddress.fullName}</TableCell>
@@ -435,6 +471,29 @@ export default function Orders() {
                                             </Button>
                                         </div>
                                     </TableCell>
+                                    {/* 2️⃣ NEW: Payment Status cell */}
+                                    <TableCell>
+                                        {order.paymentMethod === "BankTransfer" ? (
+                                            <Select
+                                                value={order.paymentStatus}
+                                                onValueChange={(v) => handlePaymentStatusChange(order._id, v)}
+                                                disabled={isPaymentUpdating}
+                                            >
+                                                <SelectTrigger className="w-[120px]">
+                                                    <SelectValue placeholder="Payment" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Pending">Pending</SelectItem>
+                                                    <SelectItem value="Confirmed">Confirmed</SelectItem>
+                                                    <SelectItem value="Declined">Declined</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <Badge>{order.paymentStatus}</Badge>
+                                        )}
+                                    </TableCell>
+
+
                                     <TableCell>
                                         <div className="flex items-center space-x-2">
                                             <Input
@@ -478,6 +537,47 @@ export default function Orders() {
                                                     </DialogTitle>
                                                 </DialogHeader>
                                                 <div className="overflow-auto max-h-[calc(90vh-120px)]">
+                                                    {currentOrder?.paymentScreenshot && (
+                                                        <div className="mb-6">
+                                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                                                Payment Proof
+                                                            </h3>
+
+                                                            <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+                                                                <DialogTrigger asChild>
+                                                                    <Image
+                                                                        src={currentOrder.paymentScreenshot}
+                                                                        alt="Payment Proof"
+                                                                        width={150}
+                                                                        height={150}
+                                                                        className="object-cover rounded-md cursor-pointer border"
+                                                                    />
+                                                                </DialogTrigger>
+
+                                                                <DialogContent className="p-0 bg-black/70 flex items-center justify-center">
+                                                                    <div className="relative">
+                                                                        <Image
+                                                                            src={currentOrder.paymentScreenshot}
+                                                                            alt="Zoomed Payment Proof"
+                                                                            width={800}
+                                                                            height={800}
+                                                                            className="object-contain max-h-[80vh] max-w-[80vw] rounded-md"
+                                                                        />
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            onClick={() => setIsImageDialogOpen(false)}
+                                                                            className="absolute top-2 right-2 text-white bg-black/50"
+                                                                            aria-label="Close"
+                                                                        >
+                                                                            ✕
+                                                                        </Button>
+                                                                    </div>
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                        </div>
+                                                    )}
+
                                                     {currentOrder && (
                                                         <div id="printable-content" ref={orderDetailsRef} className="p-4">
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { Minus, Plus, Star, Share2, ShoppingCart, ShoppingBag, Eye, ArrowBigRight } from "lucide-react"
+import { Minus, Plus, Star, Share2, ShoppingCart, ShoppingBag, Eye, ArrowBigRight, X, ChevronUp, ChevronDown, } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useCart } from "@/app/Component/CartContext"
 import { Separator } from "@/components/ui/separator"
@@ -74,12 +74,15 @@ export default function ProductDetail() {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     const [animateIn, setAnimateIn] = useState(false)
 
+    // New review-related state:
+    const [expandedReviews, setExpandedReviews] = useState<Record<string, boolean>>({})
+    const [selectedReviewImage, setSelectedReviewImage] = useState<string | null>(null)
     useEffect(() => {
         setAnimateIn(true)
         return () => setAnimateIn(false)
     }, [])
 
-    
+
     const fetchRelatedProducts = useCallback(
         async (categories: Category[]) => {
             try {
@@ -728,19 +731,24 @@ export default function ProductDetail() {
                             </div>
 
                             {/* Review List */}
-                            <div className="md:col-span-8">
-                                {reviews.length > 0 ? (
-                                    <div className="space-y-6">
-                                        {reviews.map((review) => (
+                            {reviews.length > 0 ? (
+                                <div className="space-y-6">
+                                    {reviews.map((review) => {
+                                        const hasImages = review.images && review.images.length > 0
+                                        const isOpen = !!expandedReviews[review._id]
+
+                                        return (
                                             <div key={review._id} className="border-b pb-6">
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between  w-96 ">
                                                     <div className="flex items-center">
                                                         <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-medium">
                                                             {review.user.name.charAt(0)}
                                                         </div>
                                                         <div className="ml-3">
                                                             <div className="flex items-center">
-                                                                <p className="text-sm font-medium text-gray-900">{review.user.name}</p>
+                                                                <p className="text-sm font-medium text-gray-900">
+                                                                    {review.user.name}
+                                                                </p>
                                                                 <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">
                                                                     Verified
                                                                 </span>
@@ -749,25 +757,54 @@ export default function ProductDetail() {
                                                                 {[1, 2, 3, 4, 5].map((star) => (
                                                                     <Star
                                                                         key={star}
-                                                                        className={`h-4 w-4 ${star <= review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                                                                        className={`h-4 w-4 ${star <= review.rating
+                                                                                ? "text-yellow-400 fill-yellow-400"
+                                                                                : "text-gray-300"
                                                                             }`}
                                                                     />
                                                                 ))}
-                                                                <span className="ml-2 text-xs text-gray-500">{formatDate(review.createdAt)}</span>
+                                                                <span className="ml-2 text-xs text-gray-500">
+                                                                    {formatDate(review.createdAt)}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    {hasImages && (
+                                                        <button
+                                                            onClick={() =>
+                                                                setExpandedReviews((prev) => ({
+                                                                    ...prev,
+                                                                    [review._id]: !prev[review._id],
+                                                                }))
+                                                            }
+                                                            className="ml-auto"
+                                                            aria-label={isOpen ? "Hide images" : "Show images"}
+                                                        >
+                                                            {isOpen ? (
+                                                                <ChevronUp className="h-5 w-5 text-gray-600" />
+                                                            ) : (
+                                                                <ChevronDown className="h-5 w-5 text-gray-600" />
+                                                            )}
+                                                        </button>
+                                                    )}
                                                 </div>
+
                                                 <div className="mt-4">
                                                     <p className="text-gray-700">{review.comment}</p>
                                                 </div>
-                                                {review.images && review.images.length > 0 && (
-                                                    <div className="mt-4 flex space-x-2">
-                                                        {review.images.map((image, index) => (
-                                                            <div key={index} className="relative h-20 w-20 rounded-md overflow-hidden">
+
+                                                {hasImages && isOpen && (
+                                                    <div className="mt-4 flex space-x-12 overflow-auto w-full ">
+                                                        {review.images.map((img, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="relative h-40 w-40 rounded-md overflow-hidden cursor-pointer"
+                                                                onClick={() => setSelectedReviewImage(img)}
+                                                            >
                                                                 <Image
-                                                                    src={image || "/placeholder.svg"}
-                                                                    alt={`Review image ${index + 1}`}
+                                                                    src={img || "/placeholder.svg"}
+                                                                    alt={`Review image ${idx + 1}`}
                                                                     fill
                                                                     className="object-cover"
                                                                 />
@@ -776,17 +813,46 @@ export default function ProductDetail() {
                                                     </div>
                                                 )}
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12 bg-gray-50 rounded-lg">
-                                        <p className="text-gray-500">No reviews yet for this product.</p>
-                                    </div>
-                                )}
-                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                                    <p className="text-gray-500">No reviews yet for this product.</p>
+                                </div>
+                            )}
+
                         </div>
                     </div>
 
+                    {/* Lightbox Modal for Review Images */}
+
+                    {selectedReviewImage && (
+                        <div
+                            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+                            onClick={() => setSelectedReviewImage(null)}
+                        >
+                            <div
+                                className="relative"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    className="absolute top-2 right-2 text-white"
+                                    onClick={() => setSelectedReviewImage(null)}
+                                >
+                                    <X className="h-6 w-6" />
+                                </button>
+                                <img
+                                    src={selectedReviewImage}
+                                    alt="Enlarged review"
+                                    className="max-w-[90vw] max-h-[90vh] mx-auto block"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+
+                    
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-16">

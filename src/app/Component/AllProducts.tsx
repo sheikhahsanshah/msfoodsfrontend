@@ -73,18 +73,18 @@ export default function AllProducts() {
         onSale: false,
     })
     const [sortBy, setSortBy] = useState<SortOption>("featured")
-    const bgColors = [
-        'bg-indigo-100',
-        'bg-yellow-100',
-        'bg-lime-100',
-        'bg-amber-100',
-        'bg-orange-100',
-        'bg-emerald-100',
-        'bg-rose-100',
-        'bg-pink-100',
-        'bg-purple-100',
-        'bg-sky-100',
-    ];
+    // const bgColors = [
+    //     'bg-indigo-100',
+    //     'bg-yellow-100',
+    //     'bg-lime-100',
+    //     'bg-amber-100',
+    //     'bg-orange-100',
+    //     'bg-emerald-100',
+    //     'bg-rose-100',
+    //     'bg-pink-100',
+    //     'bg-purple-100',
+    //     'bg-sky-100',
+    // ];
     // Mobile filter panel states
     //   const [showMobileFilter, setShowMobileFilter] = useState(false)
     //   const [animateMobileFilter, setAnimateMobileFilter] = useState(false)
@@ -729,10 +729,10 @@ export default function AllProducts() {
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {filteredProducts.slice(0, visibleCount).map((product) => {
                             // move consts out of JSX
-                            const bgColor =
-                                bgColors[
-                                Math.floor(Math.random() * bgColors.length)
-                                ];
+                            // const bgColor =
+                            //     bgColors[
+                            //     Math.floor(Math.random() * bgColors.length)
+                            //     ];
                             const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price)
                             const lowestPriceOption = sortedPrices[0]
                             const displayPrice = lowestPriceOption?.salePrice ?? lowestPriceOption?.price
@@ -744,7 +744,7 @@ export default function AllProducts() {
                                 <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
                                     <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
                                         {/* Image Section */}
-                                        <CardHeader className={`${bgColor} p-0 relative aspect-square  overflow-hidden`}>
+                                        <CardHeader className={`bg-white p-0 relative aspect-square  overflow-hidden`}>
                                             <Image
                                                 src={product.images[0]?.url || "/placeholder.svg"}
                                                 alt={product.name}

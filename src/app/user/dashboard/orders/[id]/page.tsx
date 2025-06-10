@@ -354,7 +354,7 @@ export default function OrderDetailsPage() {
               </Button>
             )}
 
-            {order.status === "Delivered" && (
+            {/* {order.status === "Delivered" && (
               <Button
                 variant="outline"
                 className="w-full"
@@ -367,7 +367,7 @@ export default function OrderDetailsPage() {
               >
                 Request Return
               </Button>
-            )}
+            )} */}
           </CardContent>
         </Card>
       </div>

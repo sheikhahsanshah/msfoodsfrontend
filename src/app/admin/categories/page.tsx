@@ -22,6 +22,14 @@ interface CategoryImage {
     url: string
 }
 
+interface PaymentMethod {
+  _id: string
+  name: string
+  accountNumber: string
+  ownerName: string
+  isActive: boolean
+}
+
 interface Category {
     _id: string
     name: string
@@ -52,7 +60,37 @@ export default function SettingsPage() {
     const [editCategoryImages, setEditCategoryImages] = useState<File[]>([])
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([])
     const { toast } = useToast()
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
+    const [isPMLoading, setIsPMLoading] = useState(true)
+    const [isAddPMDialogOpen, setIsAddPMDialogOpen] = useState(false)
+    const [isEditPMDialogOpen, setIsEditPMDialogOpen] = useState(false)
+    const [currentPM, setCurrentPM] = useState<PaymentMethod | null>(null)
+    const [newPM, setNewPM] = useState({
+        name: "",
+        accountNumber: "",
+        ownerName: "",
+        isActive: true,
+    })
 
+    const fetchPaymentMethods = useCallback(async () => {
+        try {
+            setIsPMLoading(true)
+            const res = await authFetch(`${API_URL}/api/payment-methods`)
+            if (!res.ok) throw new Error("Failed to load payment methods")
+            const data: PaymentMethod[] = await res.json()
+            setPaymentMethods(data)
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: err instanceof Error ? err.message : "Unknown error",
+            })
+        } finally {
+            setIsPMLoading(false)
+        }
+    }, [toast])
+
+    
     const fetchCategories = useCallback(async () => {
         try {
             const response = await authFetch(`${API_URL}/api/categories`)
@@ -97,7 +135,94 @@ export default function SettingsPage() {
     useEffect(() => {
         fetchCategories()
         fetchSettings()
-    }, [fetchCategories, fetchSettings])
+        fetchPaymentMethods()
+    }, [fetchCategories, fetchSettings, fetchPaymentMethods])
+
+    // Create
+    const handleAddPM = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsPMLoading(true)
+        try {
+            const token = localStorage.getItem("accessToken")
+            const res = await fetch(`${API_URL}/api/payment-methods`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(newPM),
+            })
+            if (!res.ok) throw new Error("Failed to add payment method")
+            await fetchPaymentMethods()
+            setIsAddPMDialogOpen(false)
+            setNewPM({ name: "", accountNumber: "", ownerName: "", isActive: true })
+            toast({ title: "Added", description: "Payment method created." })
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: err instanceof Error ? err.message : "Unknown error",
+            })
+        } finally {
+            setIsPMLoading(false)
+        }
+    }
+
+    // Update
+    const handleEditPM = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!currentPM) return
+        setIsPMLoading(true)
+        try {
+            const token = localStorage.getItem("accessToken")
+            const res = await fetch(`${API_URL}/api/payment-methods/${currentPM._id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(currentPM),
+            })
+            if (!res.ok) throw new Error("Failed to update payment method")
+            await fetchPaymentMethods()
+            setIsEditPMDialogOpen(false)
+            setCurrentPM(null)
+            toast({ title: "Updated", description: "Payment method saved." })
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: err instanceof Error ? err.message : "Unknown error",
+            })
+        } finally {
+            setIsPMLoading(false)
+        }
+    }
+
+    // Delete
+    const handleDeletePM = async (id: string) => {
+        if (!confirm("Remove this payment method?")) return
+        setIsPMLoading(true)
+        try {
+            const token = localStorage.getItem("accessToken")
+            const res = await fetch(`${API_URL}/api/payment-methods/${id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            if (!res.ok) throw new Error("Failed to delete")
+            await fetchPaymentMethods()
+            toast({ title: "Deleted", description: "Payment method removed." })
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: err instanceof Error ? err.message : "Unknown error",
+            })
+        } finally {
+            setIsPMLoading(false)
+        }
+    }
+
 
     const handleDeleteCategory = async (categoryId: string) => {
         if (!confirm("Are you sure you want to delete this category?")) return
@@ -387,6 +512,214 @@ export default function SettingsPage() {
                         </div>
                     ) : (
                         <p>No shipping settings found. Please create shipping settings.</p>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* ——— PAYMENT METHODS ——— */}
+            <Card className="mb-8 mt-8">
+                <CardHeader className="flex justify-between items-center">
+                    <CardTitle>Payment Methods</CardTitle>
+                    <Dialog open={isAddPMDialogOpen} onOpenChange={setIsAddPMDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>Add Payment Method</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>New Payment Method</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleAddPM} className="space-y-4">
+                                <div>
+                                    <Label htmlFor="pm-name">Name</Label>
+                                    <Input
+                                        id="pm-name"
+                                        value={newPM.name}
+                                        onChange={(e) =>
+                                            setNewPM({ ...newPM, name: e.target.value })
+                                        }
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="pm-account">Account Number</Label>
+                                    <Input
+                                        id="pm-account"
+                                        value={newPM.accountNumber}
+                                        onChange={(e) =>
+                                            setNewPM({ ...newPM, accountNumber: e.target.value })
+                                        }
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="pm-owner">Owner Name</Label>
+                                    <Input
+                                        id="pm-owner"
+                                        value={newPM.ownerName}
+                                        onChange={(e) =>
+                                            setNewPM({ ...newPM, ownerName: e.target.value })
+                                        }
+                                        required
+                                    />
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        id="pm-active"
+                                        checked={newPM.isActive}
+                                        onCheckedChange={(checked) =>
+                                            setNewPM({ ...newPM, isActive: checked })
+                                        }
+                                    />
+                                    <Label htmlFor="pm-active">Active</Label>
+                                </div>
+                                <Button type="submit" disabled={isPMLoading}>
+                                    {isPMLoading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : "Create"}
+                                </Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </CardHeader>
+
+                <CardContent>
+                    {isPMLoading && !paymentMethods.length ? (
+                        <div className="flex justify-center py-10">
+                            <Loader2 className="animate-spin h-8 w-8" />
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Account #</TableHead>
+                                    <TableHead>Owner</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paymentMethods.map((pm) => (
+                                    <TableRow key={pm._id}>
+                                        <TableCell>{pm.name}</TableCell>
+                                        <TableCell>{pm.accountNumber}</TableCell>
+                                        <TableCell>{pm.ownerName}</TableCell>
+                                        <TableCell>
+                                            <span
+                                                className={`px-2 py-1 rounded-full text-xs ${pm.isActive
+                                                        ? "bg-green-100 text-green-800"
+                                                        : "bg-red-100 text-red-800"
+                                                    }`}
+                                            >
+                                                {pm.isActive ? "Active" : "Inactive"}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {/* Edit */}
+                                            <Dialog
+                                                open={isEditPMDialogOpen && currentPM?._id === pm._id}
+                                                onOpenChange={(open) => {
+                                                    setIsEditPMDialogOpen(open)
+                                                    if (!open) setCurrentPM(null)
+                                                }}
+                                            >
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => setCurrentPM(pm)}
+                                                        className="mr-2"
+                                                    >
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>Edit Payment Method</DialogTitle>
+                                                    </DialogHeader>
+                                                    {currentPM && (
+                                                        <form onSubmit={handleEditPM} className="space-y-4">
+                                                            <div>
+                                                                <Label htmlFor="edit-pm-name">Name</Label>
+                                                                <Input
+                                                                    id="edit-pm-name"
+                                                                    value={currentPM.name}
+                                                                    onChange={(e) =>
+                                                                        setCurrentPM({
+                                                                            ...currentPM,
+                                                                            name: e.target.value,
+                                                                        })
+                                                                    }
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <Label htmlFor="edit-pm-account">
+                                                                    Account Number
+                                                                </Label>
+                                                                <Input
+                                                                    id="edit-pm-account"
+                                                                    value={currentPM.accountNumber}
+                                                                    onChange={(e) =>
+                                                                        setCurrentPM({
+                                                                            ...currentPM,
+                                                                            accountNumber: e.target.value,
+                                                                        })
+                                                                    }
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <Label htmlFor="edit-pm-owner">Owner Name</Label>
+                                                                <Input
+                                                                    id="edit-pm-owner"
+                                                                    value={currentPM.ownerName}
+                                                                    onChange={(e) =>
+                                                                        setCurrentPM({
+                                                                            ...currentPM,
+                                                                            ownerName: e.target.value,
+                                                                        })
+                                                                    }
+                                                                    required
+                                                                />
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <Switch
+                                                                    id="edit-pm-active"
+                                                                    checked={currentPM.isActive}
+                                                                    onCheckedChange={(checked) =>
+                                                                        setCurrentPM({
+                                                                            ...currentPM,
+                                                                            isActive: checked,
+                                                                        })
+                                                                    }
+                                                                />
+                                                                <Label htmlFor="edit-pm-active">Active</Label>
+                                                            </div>
+                                                            <Button type="submit" disabled={isPMLoading}>
+                                                                {isPMLoading ? (
+                                                                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                                                                ) : (
+                                                                    "Save"
+                                                                )}
+                                                            </Button>
+                                                        </form>
+                                                    )}
+                                                </DialogContent>
+                                            </Dialog>
+
+                                            {/* Delete */}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleDeletePM(pm._id)}
+                                                disabled={isPMLoading}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     )}
                 </CardContent>
             </Card>

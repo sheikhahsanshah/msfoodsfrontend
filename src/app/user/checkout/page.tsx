@@ -5,6 +5,13 @@ import type React from "react"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+
+interface PaymentMethod {
+    _id: string;
+    name: string;
+    accountNumber: string;
+    ownerName: string;
+}
 import Link from "next/link"
 import { useCart } from "@/app/Component/CartContext"
 import { useUser } from "@/app/Component/user-context"
@@ -15,7 +22,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
 import {
-    CreditCard,
+
     Truck,
     ShieldCheck,
     ArrowLeft,
@@ -24,6 +31,7 @@ import {
     ChevronUp,
     Tag,
     AlertCircle,
+    CreditCard,
 } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -39,7 +47,7 @@ export default function CheckoutPage() {
     const router = useRouter()
     const { toast } = useToast()
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [paymentMethod, setPaymentMethod] = useState<"COD" | "PayFast">("COD")
+    const [paymentMethod, setPaymentMethod] = useState<"COD" | "BankTransfer">("COD")
     const [couponCode, setCouponCode] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
     const [couponDiscount, setCouponDiscount] = useState(0)
@@ -56,9 +64,30 @@ export default function CheckoutPage() {
         country: "Pakistan",
     })
     const [phoneError, setPhoneError] = useState("");
+    const [bankMethods, setBankMethods] = useState<PaymentMethod[]>([])
+    const [selectedBankId, setSelectedBankId] = useState<string>("")
+    const [screenshotFile, setScreenshotFile] = useState<File | null>(null)
+    const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
 
+    useEffect(() => {
+        ; (async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/payment-methods`, { credentials: "include" })
+                if (!res.ok) throw new Error("Failed to load banks")
+                setBankMethods(await res.json())
+            } catch (err) {
+                toast({ title: "Error", description: (err as Error).message, variant: "destructive" })
+            }
+        })()
+    }, [toast])
 
-
+    useEffect(() => {
+        if (paymentMethod !== "BankTransfer") {
+            setSelectedBankId("");
+            setScreenshotFile(null);
+            setScreenshotPreview(null);
+        }
+    }, [paymentMethod]);
     // Calculate order summary
     const subtotal = getTotalPrice()
     const discount = couponApplied ? couponDiscount : 0
@@ -209,90 +238,122 @@ export default function CheckoutPage() {
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsSubmitting(true)
+        e.preventDefault();
+        setIsSubmitting(true);
 
         try {
-            // Validate required fields
-            const requiredFields = ["fullName", "email", "phone", "address", "city", "postalCode"]
-            const missingFields = requiredFields.filter((field) => !formData[field as keyof typeof formData])
-
-            if (missingFields.length > 0) {
-                throw new Error(`Missing required fields: ${missingFields.join(", ")}`)
+            // 1️⃣ Basic form validation
+            const required = ["fullName", "email", "phone", "address", "city", "postalCode"];
+            const missing = required.filter(f => !formData[f as keyof typeof formData]);
+            if (missing.length) {
+                throw new Error(`Missing required fields: ${missing.join(", ")}`);
             }
 
-            // Check if user is authenticated when using coupon
-            if (couponApplied && !isAuthenticated) {
-                throw new Error("Authentication required to use coupon. Please log in.")
-            }
-
-            // Prepare order items
-            const items = cart.map((item) => ({
+            // 2️⃣ Prepare order items & addresses
+            const items = cart.map(item => ({
                 productId: item.id,
                 priceOptionId: item.priceOptionId,
                 quantity: item.quantity,
-            }))
+            }));
+            const shippingAddress = {
+                fullName: formData.fullName,
+                address: formData.address,
+                city: formData.city,
+                postalCode: formData.postalCode,
+                country: formData.country,
+                email: formData.email,
+                phone: formData.phone,
+            };
 
-            // Create order payload
+            // 3️⃣ BANK TRANSFER branch
+            if (paymentMethod === "BankTransfer") {
+                if (!selectedBankId) {
+                    throw new Error("Please select a bank account");
+                }
+                if (!screenshotFile) {
+                    throw new Error("Please upload a payment proof image");
+                }
+
+                // build multipart form
+                const payload = new FormData();
+                payload.append("paymentMethod", paymentMethod);
+                payload.append("bankMethodId", selectedBankId);
+                payload.append("paymentScreenshot", screenshotFile);
+
+                payload.append("items", JSON.stringify(items));
+                payload.append("shippingAddress", JSON.stringify(shippingAddress));
+
+                payload.append("subtotal", subtotal.toString());
+                payload.append("shippingCost", shippingCost.toString());
+                payload.append("discount", discount.toString());
+                payload.append("totalAmount", orderTotal.toString());
+                if (couponApplied) payload.append("couponCode", couponCode);
+
+                const token =
+                    user?.accessToken ||
+                    localStorage.getItem("accessToken") ||
+                    Cookies.get("accessToken") ||
+                    "";
+
+                const res = await fetch(`${API_URL}/api/orders`, {
+                    method: "POST",
+                    body: payload,
+                    headers: {
+                        ...(token && { Authorization: `Bearer ${token}` }),
+                    },
+                    credentials: "include",
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.message || "Order failed");
+
+                clearCart();
+                router.push(`/user/checkout/success?orderId=${result.data._id}`);
+                return; // done!
+            }
+
+            // 4️⃣ COD fallback
             const orderData = {
                 items,
-                shippingAddress: {
-                    fullName: formData.fullName,
-                    address: formData.address,
-                    city: formData.city,
-                    postalCode: formData.postalCode,
-                    country: formData.country,
-                    email: formData.email,
-                    phone: formData.phone,
-                },
+                shippingAddress,
                 paymentMethod,
                 couponCode: couponApplied ? couponCode : undefined,
                 subtotal,
                 shippingCost,
                 discount,
                 totalAmount: orderTotal,
-            }
+            };
 
-            // Get the access token
-            const accessToken = user?.accessToken || localStorage.getItem("accessToken") || Cookies.get("accessToken") || ""
+            const token =
+                user?.accessToken ||
+                localStorage.getItem("accessToken") ||
+                Cookies.get("accessToken") ||
+                "";
 
-            // Create order
-            const response = await fetch(`${API_URL}/api/orders`, {
+            const res = await fetch(`${API_URL}/api/orders`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(user ? { Authorization: `Bearer ${accessToken}` } : {}) // Only send token if logged in
+                    ...(token && { Authorization: `Bearer ${token}` }),
                 },
                 body: JSON.stringify(orderData),
                 credentials: "include",
-            })
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.message || "Order failed");
 
-            const result = await response.json()
-
-            if (!response.ok) throw new Error(result.message || "Order failed")
-
-            // If PayFast, redirect immediately
-            if (paymentMethod === "PayFast" && result.data.paymentResult.redirectUrl) {
-                window.location.href = result.data.paymentResult.redirectUrl
-                return
-            }
-
-            const orderId = result.data.id;        // or json.data._id
-            // push including the orderId
-
-            clearCart()
-            router.push(`/user/checkout/success?orderId=${orderId}`);
-        } catch (error) {
+            clearCart();
+            router.push(`/user/checkout/success?orderId=${result.data._id}`);
+        } catch (err) {
             toast({
                 title: "Order Error",
-                description: error instanceof Error ? error.message : "Failed to place order",
+                description: err instanceof Error ? err.message : "Failed to place order",
                 variant: "destructive",
-                duration: 1000,
-            })
+                duration: 3000,
+            });
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     const handleRemoveCoupon = () => {
         setCouponCode("")
@@ -448,29 +509,201 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* Payment Method */}
+                            {/* ——— PAYMENT METHOD ——— */}
                             <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
-                                <h2 className="text-lg font-medium text-gray-900 mb-4">Payment Method</h2>
+                                <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Method</h2>
+
                                 <RadioGroup
                                     value={paymentMethod}
-                                    onValueChange={(v) => setPaymentMethod(v as "COD" | "PayFast")}
-                                    className="space-y-4"
+                                    onValueChange={(v) => setPaymentMethod(v as "COD" | "BankTransfer")}
+                                    className="grid grid-cols-2 gap-4"
                                 >
-                                    <div className="flex items-center space-x-3 border border-gray-200 p-4 rounded-md">
-                                        <RadioGroupItem value="COD" id="cod" />
-                                        <Label htmlFor="cod" className="flex items-center cursor-pointer">
-                                            <CreditCard className="h-5 w-5 mr-2 text-gray-600" />
-                                            Cash on Delivery
-                                        </Label>
+                                    {/* COD Card */}
+                                    <div
+                                        className={`
+        relative flex items-center p-4 rounded-lg border
+        cursor-pointer transition
+        ${paymentMethod === "COD"
+                                                ? "border-indigo-600 bg-indigo-50"
+                                                : "border-gray-200 hover:border-gray-300"}
+      `}
+                                    >
+                                        <RadioGroupItem
+                                            value="COD"
+                                            id="cod"
+                                            className="sr-only"
+                                        />
+                                        <label
+                                            htmlFor="cod"
+                                            className="flex items-center space-x-2 w-full cursor-pointer"
+                                        >
+                                            <CreditCard
+                                                className={`h-6 w-6 ${paymentMethod === "COD" ? "text-indigo-600" : "text-gray-400"
+                                                    }`}
+                                            />
+                                            <span
+                                                className={`font-medium ${paymentMethod === "COD" ? "text-indigo-900" : "text-gray-700"
+                                                    }`}
+                                            >
+                                                Cash on Delivery
+                                            </span>
+                                        </label>
                                     </div>
-                                    <div className="flex items-center space-x-3 border border-gray-200 p-4 rounded-md">
-                                        <RadioGroupItem value="PayFast" id="payfast" disabled />
-                                        <Label htmlFor="payfast" className="flex items-center cursor-not-allowed opacity-50">
-                                            <CreditCard className="h-5 w-5 mr-2 text-gray-600" />
-                                            PayFast (Credit/Debit Card)
-                                        </Label>
+
+                                    {/* Bank Transfer Card */}
+                                    <div
+                                        className={`
+        relative flex items-center p-4 rounded-lg border
+        cursor-pointer transition
+        ${paymentMethod === "BankTransfer"
+                                                ? "border-indigo-600 bg-indigo-50"
+                                                : "border-gray-200 hover:border-gray-300"}
+      `}
+                                    >
+                                        <RadioGroupItem
+                                            value="BankTransfer"
+                                            id="bank"
+                                            className="sr-only"
+                                        />
+                                        <label
+                                            htmlFor="bank"
+                                            className="flex items-center space-x-2 w-full cursor-pointer"
+                                        >
+                                            <CreditCard
+                                                className={`h-6 w-6 ${paymentMethod === "BankTransfer"
+                                                    ? "text-indigo-600"
+                                                    : "text-gray-400"
+                                                    }`}
+                                            />
+                                            <span
+                                                className={`font-medium ${paymentMethod === "BankTransfer"
+                                                    ? "text-indigo-900"
+                                                    : "text-gray-700"
+                                                    }`}
+                                            >
+                                                Bank Transfer
+                                            </span>
+                                        </label>
                                     </div>
                                 </RadioGroup>
                             </div>
+
+                            {/* ——— BANK TRANSFER DETAILS ——— */}
+                            {paymentMethod === "BankTransfer" && (
+                                <div className="space-y-6 mb-6">
+                                    {/* Select Bank */}
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                            Choose Bank Account
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {bankMethods.map((b) => (
+                                                <label
+                                                    key={b._id}
+                                                    className={`
+              flex items-start p-4 rounded-lg border cursor-pointer transition
+              ${selectedBankId === b._id
+                                                            ? "border-indigo-600 bg-indigo-50"
+                                                            : "border-gray-200 hover:shadow-sm hover:border-gray-300"}
+            `}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="selectedBank"
+                                                        value={b._id}
+                                                        checked={selectedBankId === b._id}
+                                                        onChange={() => setSelectedBankId(b._id)}
+                                                        className="mt-1 h-4 w-4 text-indigo-600"
+                                                    />
+                                                    <div className="ml-3">
+                                                        <p className="text-gray-800 font-semibold">{b.name}</p>
+                                                        <p className="text-gray-600 text-sm">
+                                                            Acct No: <span className="font-mono">{b.accountNumber}</span>
+                                                        </p>
+                                                        <p className="text-gray-600 text-sm">
+                                                            Holder: {b.ownerName}
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Drag-and-Drop Uploader */}
+                                    <div>
+                                        <Label htmlFor="screenshot" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Upload Payment Proof
+                                        </Label>
+                                        <div
+                                            className={`
+          relative flex justify-center items-center px-6 py-8 border-2 border-dashed rounded-lg
+          cursor-pointer transition
+          ${screenshotPreview ? "border-transparent" : "border-gray-300 hover:border-gray-400"}
+        `}
+                                            onClick={() => document.getElementById("screenshot")?.click()}
+                                        >
+                                            {screenshotPreview ? (
+                                                <div className="relative w-32 h-32">
+                                                    <Image
+                                                        src={screenshotPreview}
+                                                        alt="Payment Proof Preview"
+                                                        fill
+                                                        className="object-cover rounded-md"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            setScreenshotFile(null)
+                                                            setScreenshotPreview(null)
+                                                        }}
+                                                        className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1 text-center">
+                                                    <svg
+                                                        className="mx-auto h-8 w-8 text-gray-400"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        stroke="currentColor"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth="2"
+                                                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v8m0-8l-3 3m3-3l3 3m-3-15v6"
+                                                        />
+                                                    </svg>
+                                                    <p className="text-sm text-gray-600">
+                                                        Click to upload or drag & drop
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        PNG, JPG up to 5MB
+                                                    </p>
+                                                </div>
+                                            )}
+                                            <input
+                                                id="screenshot"
+                                                name="screenshot"
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0] ?? null
+                                                    setScreenshotFile(file)
+                                                    setScreenshotPreview(file ? URL.createObjectURL(file) : null)
+                                                }}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+
 
                             <div className="lg:hidden">
                                 <Button type="submit" className="w-full mt-6 bg-purple-600 hover:bg-purple-700" disabled={isSubmitting}>
