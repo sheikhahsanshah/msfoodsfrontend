@@ -150,7 +150,7 @@ export default function ProductGrid() {
                                     )}
                                 </CardHeader>
 
-                                <CardContent className="p-5 flex flex-col flex-grow">k
+                                <CardContent className="p-5 flex flex-col flex-grow">
                                     <div className="text-sm text-[#1D1D1D]">
                                         {product.priceOptions.length > 1 ? "From " : ""}
                                         {displayPrice ? `Rs. ${displayPrice.toFixed(2)}` : "Price not available"}
