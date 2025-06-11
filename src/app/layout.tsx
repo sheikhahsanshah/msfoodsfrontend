@@ -63,10 +63,7 @@ export default function RootLayout({
                 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
                 <link rel="canonical" href="https://www.msfoods.com" />
                 {/* ✅ Google Site Verification Meta Tag */}
-                <meta
-                    name="google-site-verification"
-                    content="UtDj9ilshFvt0b9C_aOhvWtjUFD01rn-1627aRfSvjw"
-                />
+                <meta name="google-site-verification" content="em5HlzcZER9QnGqyqO5Z7b6sbyVyVDVVa0ByJOqCBa0" />
             </head>
             <body className={dmSans.className}>
                 <UserProvider>
