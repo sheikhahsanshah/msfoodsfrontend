@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://msfoods.pk
+
+# Sitemaps
+Sitemap: https://msfoods.pk/sitemap.xml
