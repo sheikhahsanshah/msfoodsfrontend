@@ -92,7 +92,7 @@ export default function CheckoutPage() {
     const subtotal = getTotalPrice()
     const discount = couponApplied ? couponDiscount : 0
     // shippingCost is now derived
-    const codFee = paymentMethod === 'COD' ? 50 : 0;
+    const codFee = paymentMethod === 'COD' ? 100 : 0;
 
     // update how you derive shippingCost & orderTotal:
     const shippingCost = subtotal > freeShippingThreshold ? 0 : shippingFee;
