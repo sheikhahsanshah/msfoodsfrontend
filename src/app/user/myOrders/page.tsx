@@ -201,8 +201,8 @@ export default function MyOrdersPage() {
                                                 <h4 className="font-semibold mb-2">Shipping Address</h4>
                                                 <p>{order.shippingAddress.fullName}</p>
                                                 <p>{order.shippingAddress.address}</p>
-                                                <p>
-                                                    {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+                                                <p className="text-gray-600">
+                                                    {order.shippingAddress.city}{order.shippingAddress.postalCode ? `, ${order.shippingAddress.postalCode}` : ''}
                                                 </p>
                                                 <p>{order.shippingAddress.country}</p>
                                                 <p>Phone: {order.shippingAddress.phone}</p>

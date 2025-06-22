@@ -211,21 +211,21 @@ export default function SignupPage() {
                                     onValueChange={handleTabChange}
                                     className="w-full"
                                 >
-                                    <TabsList className="grid w-full grid-cols-2 bg-gray-100/50 border border-gray-200/50 p-1 rounded-xl">
+                                    <TabsList className=" w-full  bg-gray-100/50 border border-gray-200/50 p-1 rounded-xl">
                                         <TabsTrigger
                                             value="email"
-                                            className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
+                                            className="flex w-full items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
                                         >
                                             <Mail className="h-4 w-4" />
                                             Email
                                         </TabsTrigger>
-                                        <TabsTrigger
+                                        {/* <TabsTrigger
                                             value="phone"
                                             className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
                                         >
                                             <Phone className="h-4 w-4" />
                                             Phone
-                                        </TabsTrigger>
+                                        </TabsTrigger> */}
                                     </TabsList>
 
                                     <TabsContent value="email" className="space-y-4 mt-6">

@@ -23,11 +23,11 @@ interface CategoryImage {
 }
 
 interface PaymentMethod {
-  _id: string
-  name: string
-  accountNumber: string
-  ownerName: string
-  isActive: boolean
+    _id: string
+    name: string
+    accountNumber: string
+    ownerName: string
+    isActive: boolean
 }
 
 interface Category {
@@ -41,6 +41,8 @@ interface Category {
 interface Settings {
     _id: string
     shippingFee: number
+    freeShippingThreshold?: number
+    codFee?: number
 }
 
 export default function SettingsPage() {
@@ -50,10 +52,11 @@ export default function SettingsPage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false)
     const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false)
-    const [isEditShippingDialogOpen, setIsEditShippingDialogOpen] = useState(false)
     const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
     const [newCategory, setNewCategory] = useState({ name: "", description: "", isActive: true })
     const [newShippingFee, setNewShippingFee] = useState(0)
+    const [newFreeShippingThreshold, setNewFreeShippingThreshold] = useState(0)
+    const [newCodFee, setNewCodFee] = useState(0)
     const [categoryImages, setCategoryImages] = useState<File[]>([])
     const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
@@ -90,7 +93,7 @@ export default function SettingsPage() {
         }
     }, [toast])
 
-    
+
     const fetchCategories = useCallback(async () => {
         try {
             const response = await authFetch(`${API_URL}/api/categories`)
@@ -121,6 +124,8 @@ export default function SettingsPage() {
 
             setSettings(data)
             setNewShippingFee(data.shippingFee)
+            setNewFreeShippingThreshold(data.freeShippingThreshold || 2000) // Default if not set
+            setNewCodFee(data.codFee || 0)
         } catch (error) {
             toast({
                 variant: "destructive",
@@ -372,35 +377,94 @@ export default function SettingsPage() {
 
     const handleUpdateShipping = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!settings) return
-
         setIsLoading(true)
         try {
-            const token = localStorage.getItem("accessToken")
-            const response = await fetch(`${API_URL}/api/settings`, {
+            const response = await authFetch(`${API_URL}/api/settings`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ shippingFee: newShippingFee }),
             })
 
             if (!response.ok) {
-                throw new Error("Failed to update shipping fee")
+                const errorData = await response.json()
+                throw new Error(errorData.message || "Failed to update shipping fee")
             }
 
-            fetchSettings()
-            setIsEditShippingDialogOpen(false)
+            const data = await response.json()
+            setSettings(data.settings)
             toast({
                 title: "Success",
-                description: "Shipping fee updated successfully",
+                description: "Shipping fee updated successfully.",
             })
         } catch (error) {
             toast({
                 variant: "destructive",
                 title: "Error",
                 description: error instanceof Error ? error.message : "Failed to update shipping fee",
+            })
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleUpdateFreeShippingThreshold = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsLoading(true)
+        try {
+            const response = await authFetch(`${API_URL}/api/settings`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ freeShippingThreshold: newFreeShippingThreshold }),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.message || "Failed to update threshold")
+            }
+
+            const data = await response.json()
+            setSettings(data.settings)
+            toast({
+                title: "Success",
+                description: "Free shipping threshold updated successfully.",
+            })
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Update failed",
+            })
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleUpdateCodFee = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsLoading(true)
+        try {
+            const response = await authFetch(`${API_URL}/api/settings`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ codFee: newCodFee }),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.message || "Failed to update COD fee")
+            }
+
+            const data = await response.json()
+            setSettings(data.settings)
+            toast({
+                title: "Success",
+                description: "COD fee updated successfully.",
+            })
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Update failed",
             })
         } finally {
             setIsLoading(false)
@@ -466,53 +530,97 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="container mx-auto py-10">
+        <div className="container mx-auto py-10 px-4 md:px-6">
             <h1 className="text-3xl font-bold mb-6">Store Settings</h1>
 
             <Card className="mb-8">
                 <CardHeader>
-                    <CardTitle>Shipping Settings</CardTitle>
+                    <CardTitle>Settings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {settings ? (
-                        <div className="flex items-center gap-4">
-                            <p className="text-lg">Current Shipping Fee: Rs {settings.shippingFee.toFixed(2)}</p>
-                            <Dialog open={isEditShippingDialogOpen} onOpenChange={setIsEditShippingDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline">Update Shipping Fee</Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Update Shipping Fee</DialogTitle>
-                                    </DialogHeader>
+                    <div className="md:grid md:grid-cols-3 md:gap-4">
+                        <div className="md:col-span-1">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Shipping Fee</CardTitle>
+                                </CardHeader>
+                                <CardContent>
                                     <form onSubmit={handleUpdateShipping} className="space-y-4">
                                         <div>
-                                            <Label htmlFor="shippingFee">New Shipping Fee (Rs)</Label>
+                                            <Label htmlFor="shippingFee">Shipping Fee (Rs)</Label>
                                             <Input
                                                 id="shippingFee"
                                                 type="number"
                                                 value={newShippingFee}
                                                 onChange={(e) => setNewShippingFee(Number(e.target.value))}
-                                                step="0.01"
-                                                min="0"
+                                                className="mt-1"
                                             />
                                         </div>
                                         <Button type="submit" disabled={isLoading}>
-                                            {isLoading ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...
-                                                </>
-                                            ) : (
-                                                "Update"
-                                            )}
+                                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            Update Shipping Fee
                                         </Button>
                                     </form>
-                                </DialogContent>
-                            </Dialog>
+                                </CardContent>
+                            </Card>
                         </div>
-                    ) : (
-                        <p>No shipping settings found. Please create shipping settings.</p>
-                    )}
+                        <div className="md:col-span-1">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Free Shipping Threshold</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <form onSubmit={handleUpdateFreeShippingThreshold} className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="freeShippingThreshold">Order Subtotal Threshold</Label>
+                                            <Input
+                                                id="freeShippingThreshold"
+                                                type="number"
+                                                value={newFreeShippingThreshold}
+                                                onChange={(e) => setNewFreeShippingThreshold(Number(e.target.value))}
+                                                className="mt-1"
+                                            />
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                Orders with a subtotal over this amount get free shipping.
+                                            </p>
+                                        </div>
+                                        <Button type="submit" disabled={isLoading}>
+                                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            Update Threshold
+                                        </Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        <div className="md:col-span-1">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>COD Fee</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <form onSubmit={handleUpdateCodFee} className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="codFee">COD Fee (Rs)</Label>
+                                            <Input
+                                                id="codFee"
+                                                type="number"
+                                                value={newCodFee}
+                                                onChange={(e) => setNewCodFee(Number(e.target.value))}
+                                                className="mt-1"
+                                            />
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                Additional fee applied to Cash on Delivery orders.
+                                            </p>
+                                        </div>
+                                        <Button type="submit" disabled={isLoading}>
+                                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            Update COD Fee
+                                        </Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -605,8 +713,8 @@ export default function SettingsPage() {
                                         <TableCell>
                                             <span
                                                 className={`px-2 py-1 rounded-full text-xs ${pm.isActive
-                                                        ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
+                                                    ? "bg-green-100 text-green-800"
+                                                    : "bg-red-100 text-red-800"
                                                     }`}
                                             >
                                                 {pm.isActive ? "Active" : "Inactive"}

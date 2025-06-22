@@ -277,7 +277,7 @@ export default function ProfilePage() {
                                             <p className="font-medium">{userDetails.name}</p>
                                             <p className="text-gray-600">{defaultAddress.street}</p>
                                             <p className="text-gray-600">
-                                                {defaultAddress.city}, {defaultAddress.postalCode}
+                                                {defaultAddress.city}{defaultAddress.postalCode ? `, ${defaultAddress.postalCode}` : ''}
                                             </p>
                                             <p className="text-gray-600">{defaultAddress.country}</p>
                                         </div>

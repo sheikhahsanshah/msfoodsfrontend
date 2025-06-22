@@ -51,9 +51,12 @@ export default function CheckoutPage() {
     const [couponCode, setCouponCode] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
     const [couponDiscount, setCouponDiscount] = useState(0)
+    const [eligibleItems, setEligibleItems] = useState<any[]>([])
+    const [eligibleSubtotal, setEligibleSubtotal] = useState(0)
     const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(true)
-    const [shippingFee, setShippingFee] = useState(150)
-    const [freeShippingThreshold, setFreeShippingThreshold] = useState(3000)
+    const [shippingFee, setShippingFee] = useState(0)
+    const [freeShippingThreshold, setFreeShippingThreshold] = useState(2000)
+    const [codFee, setCodFee] = useState(0)
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -92,13 +95,21 @@ export default function CheckoutPage() {
     const subtotal = getTotalPrice()
     const discount = couponApplied ? couponDiscount : 0
     // shippingCost is now derived
-    const codFee = paymentMethod === 'COD' ? 100 : 0;
+    // const codFee = paymentMethod === 'COD' ? 100 : 0;
 
     // update how you derive shippingCost & orderTotal:
     const shippingCost = subtotal > freeShippingThreshold ? 0 : shippingFee;
-    const orderTotal = subtotal + shippingCost + codFee - discount;
+    const codFeeAmount = paymentMethod === 'COD' ? codFee : 0;
+    const orderTotal = subtotal + shippingCost + codFeeAmount - discount;
 
-
+    // Debug logging
+    // console.log("Shipping calculation:", {
+    //     subtotal,
+    //     freeShippingThreshold,
+    //     shippingFee,
+    //     shippingCost,
+    //     orderTotal
+    // })
 
     // Fetch shipping cost from backend
     const fetchShippingCost = useCallback(async () => {
@@ -106,13 +117,23 @@ export default function CheckoutPage() {
             const response = await fetch(`${API_URL}/api/settings`, {
                 credentials: "include",
             })
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch settings: ${response.status}`)
+            }
+
             const data = await response.json()
-            if (data.shippingFee) {
+            // console.log("Fetched shipping settings:", data) // Debug log
+
+            // Always update settings if data exists, regardless of shipping fee value
+            if (data) {
                 setShippingFee(data.shippingFee ?? 0);
-                setFreeShippingThreshold(data.freeShippingThreshold ?? 3000);
+                setFreeShippingThreshold(data.freeShippingThreshold ?? 2000);
+                setCodFee(data.codFee ?? 0);
+                // console.log("Updated shipping settings - Fee:", data.shippingFee, "Threshold:", data.freeShippingThreshold) // Debug log
             }
         } catch (error) {
-            console.error("Failed to fetch shipping cost:", error)
+            // console.error("Failed to fetch shipping cost:", error)
             toast({
                 title: "Error",
                 description: "Failed to fetch shipping cost. Using default value.",
@@ -208,7 +229,17 @@ export default function CheckoutPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${accessToken}`,
                 },
-                body: JSON.stringify({ code: couponCode, cartTotal: subtotal }),
+                body: JSON.stringify({
+                    code: couponCode,
+                    cartTotal: subtotal,
+                    items: cart.map(item => ({
+                        productId: item.id,
+                        priceOptionId: item.priceOptionId,
+                        quantity: item.quantity,
+                        price: item.price,
+                        name: item.name
+                    }))
+                }),
                 credentials: "include",
             })
 
@@ -217,6 +248,8 @@ export default function CheckoutPage() {
             if (data.success) {
                 setCouponDiscount(data.data.discount)
                 setCouponApplied(true)
+                setEligibleItems(data.data.eligibleItems)
+                setEligibleSubtotal(data.data.eligibleSubtotal)
                 toast({
                     title: "Coupon applied!",
                     description: `You saved Rs.${data.data.discount.toLocaleString()}`,
@@ -243,7 +276,7 @@ export default function CheckoutPage() {
 
         try {
             // 1️⃣ Basic form validation
-            const required = ["fullName", "email", "phone", "address", "city", "postalCode"];
+            const required = ["fullName", "email", "phone", "address", "city"];
             const missing = required.filter(f => !formData[f as keyof typeof formData]);
             if (missing.length) {
                 throw new Error(`Missing required fields: ${missing.join(", ")}`);
@@ -320,6 +353,7 @@ export default function CheckoutPage() {
                 subtotal,
                 shippingCost,
                 discount,
+                codFee: codFeeAmount,
                 totalAmount: orderTotal,
             };
 
@@ -359,6 +393,8 @@ export default function CheckoutPage() {
         setCouponCode("")
         setCouponApplied(false)
         setCouponDiscount(0)
+        setEligibleItems([])
+        setEligibleSubtotal(0)
         toast({
             title: "Coupon removed",
             description: "The coupon has been removed from your order.",
@@ -415,7 +451,7 @@ export default function CheckoutPage() {
                         subtotal={subtotal}
                         shippingCost={shippingCost}
                         discount={discount}
-                        codFee={codFee}
+                        codFee={codFeeAmount}
                         orderTotal={orderTotal}
                         isOpen={isOrderSummaryOpen}
                         setIsOpen={setIsOrderSummaryOpen}
@@ -426,6 +462,8 @@ export default function CheckoutPage() {
                         handleRemoveCoupon={handleRemoveCoupon}
                         isSubmitting={isSubmitting}
                         isAuthenticated={isAuthenticated}
+                        eligibleItems={eligibleItems}
+                        eligibleSubtotal={eligibleSubtotal}
                     />
                 </div>
 
@@ -491,13 +529,12 @@ export default function CheckoutPage() {
                                             <Input id="city" name="city" value={formData.city} onChange={handleInputChange} required />
                                         </div>
                                         <div>
-                                            <Label htmlFor="postalCode">Postal Code</Label>
+                                            <Label htmlFor="postalCode">Postal Code (Optional)</Label>
                                             <Input
                                                 id="postalCode"
                                                 name="postalCode"
                                                 value={formData.postalCode}
                                                 onChange={handleInputChange}
-
                                             />
                                         </div>
                                     </div>
@@ -721,7 +758,7 @@ export default function CheckoutPage() {
                                 subtotal={subtotal}
                                 shippingCost={shippingCost}
                                 discount={discount}
-                                codFee={codFee}
+                                codFee={codFeeAmount}
                                 orderTotal={orderTotal}
                                 isOpen={true}
                                 setIsOpen={() => { }}
@@ -732,6 +769,8 @@ export default function CheckoutPage() {
                                 handleRemoveCoupon={handleRemoveCoupon}
                                 isSubmitting={isSubmitting}
                                 isAuthenticated={isAuthenticated}
+                                eligibleItems={eligibleItems}
+                                eligibleSubtotal={eligibleSubtotal}
                             />
 
                             <Button
@@ -788,6 +827,8 @@ interface OrderSummaryProps {
     handleRemoveCoupon: () => void
     isSubmitting: boolean
     isAuthenticated: boolean
+    eligibleItems?: any[]
+    eligibleSubtotal?: number
 }
 
 function OrderSummaryCollapsible({
@@ -806,6 +847,8 @@ function OrderSummaryCollapsible({
     handleRemoveCoupon,
     isSubmitting,
     isAuthenticated,
+    eligibleItems,
+    eligibleSubtotal,
 }: OrderSummaryProps) {
     return (
         <div className="bg-gray-50 rounded-lg border border-gray-200">
@@ -832,31 +875,41 @@ function OrderSummaryCollapsible({
                     <Separator />
                     <div className="p-6">
                         <div className="max-h-80 overflow-y-auto mb-4">
-                            {cart.map((item) => (
-                                <div key={`${item.id}-${item.priceOptionId}`} className="flex py-4 border-b border-gray-200">
-                                    <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
-                                        <Image
-                                            src={item.image || "/placeholder.svg?height=64&width=64"}
-                                            alt={item.name}
-                                            fill
-                                            className="object-contain"
-                                        />
-                                        <div className="absolute top-0 right-0 bg-gray-800 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                                            {item.quantity}
+                            {cart.map((item) => {
+                                const isEligible = eligibleItems?.some(eligible =>
+                                    eligible.productId === item.id
+                                );
+                                return (
+                                    <div key={`${item.id}-${item.priceOptionId}`} className="flex py-4 border-b border-gray-200">
+                                        <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
+                                            <Image
+                                                src={item.image || "/placeholder.svg?height=64&width=64"}
+                                                alt={item.name}
+                                                fill
+                                                className="object-contain"
+                                            />
+                                            <div className="absolute top-0 right-0 bg-gray-800 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                                {item.quantity}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="ml-4 flex-1">
-                                        <h3 className="text-sm font-medium text-gray-900 truncate">{item.name}</h3>
-                                        {item.weightType === "weight-based" && <p className="text-xs text-gray-500">{item.weight}g</p>}
-                                        <p className="text-sm text-gray-900 mt-1">
-                                            Rs.{item.price.toLocaleString()} × {item.quantity}
+                                        <div className="ml-4 flex-1">
+                                            <h3 className="text-sm font-medium text-gray-900 truncate">{item.name}</h3>
+                                            {item.weightType === "weight-based" && <p className="text-xs text-gray-500">{item.weight}g</p>}
+                                            <p className="text-sm text-gray-900 mt-1">
+                                                Rs.{item.price.toLocaleString()} × {item.quantity}
+                                            </p>
+                                            {couponApplied && isEligible && (
+                                                <p className="text-xs text-green-600 mt-1">
+                                                    ✓ Eligible for discount
+                                                </p>
+                                            )}
+                                        </div>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            Rs.{(item.price * item.quantity).toLocaleString()}
                                         </p>
                                     </div>
-                                    <p className="text-sm font-medium text-gray-900">
-                                        Rs.{(item.price * item.quantity).toLocaleString()}
-                                    </p>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* Coupon Code */}
@@ -893,6 +946,11 @@ function OrderSummaryCollapsible({
                                     <span>Discount of Rs.{discount.toLocaleString()} applied</span>
                                 </div>
                             )}
+                            {couponApplied && eligibleSubtotal && eligibleSubtotal !== subtotal && (
+                                <div className="mt-1 text-xs text-gray-600">
+                                    Applied to eligible products only (Rs.{eligibleSubtotal.toLocaleString()})
+                                </div>
+                            )}
                         </div>
 
                         <div className="space-y-4">
@@ -903,7 +961,9 @@ function OrderSummaryCollapsible({
 
                             <div className="flex justify-between">
                                 <p className="text-sm text-gray-600">Shipping</p>
-                                <p className="text-sm font-medium text-gray-900">Rs.{shippingCost.toLocaleString()}</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                    {shippingCost === 0 ? "Free" : `Rs.${shippingCost.toLocaleString()}`}
+                                </p>
                             </div>
 
                             {discount > 0 && (
@@ -916,7 +976,7 @@ function OrderSummaryCollapsible({
                             <Separator />
                             {codFee > 0 && (
                                 <div className="flex justify-between">
-                                    <p className="text-sm text-gray-600">COD Surcharge</p>
+                                    <p className="text-sm text-gray-600">COD Fee</p>
                                     <p className="text-sm font-medium text-gray-900">
                                         Rs.{codFee.toLocaleString()}
                                     </p>

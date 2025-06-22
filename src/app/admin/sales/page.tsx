@@ -1,19 +1,21 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, Loader } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 
 interface SalesStats {
-    _id: null
     totalOrders: number
     couponsUsed: number
     totalSales: number
-    totalShippingCost: number
+    totalShipping: number
+    totalDiscount: number
+    totalCodFee: number
     totalRevenue: number
+    totalProfit: number
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
@@ -49,7 +51,7 @@ export default function Sales() {
             })
 
             if (!response.ok) {
-              
+
                 toast({
                     title: "Error",
                     description: "Failed to fetch sales stats",
@@ -59,7 +61,7 @@ export default function Sales() {
             const data = await response.json()
             setSalesStats(data.data)
         } catch {
-            
+
             setError("Failed to load sales data. Please try again later.")
             toast({
                 title: "Error",
@@ -78,9 +80,10 @@ export default function Sales() {
     }, [fetchSalesStats, timeRange, startDate, endDate])
 
     const chartData = [
-        { name: "Sales", value: salesStats?.totalSales || 0 },
-        { name: "Shipping", value: salesStats?.totalShippingCost || 0 },
-        { name: "Revenue", value: salesStats?.totalRevenue || 0 },
+        { name: "Gross Sales", value: salesStats?.totalSales || 0, fill: "#82ca9d" },
+        { name: "Shipping Fees", value: salesStats?.totalShipping || 0, fill: "#8884d8" },
+        { name: "COD Fees", value: salesStats?.totalCodFee || 0, fill: "#ff7300" },
+        { name: "Discounts Given", value: salesStats?.totalDiscount || 0, fill: "#ffc658" },
     ]
 
     if (isLoading) {
@@ -136,13 +139,32 @@ export default function Sales() {
                     </>
                 )}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">Rs {salesStats?.totalRevenue.toFixed(2) || "0.00"}</div>
+                        <p className="text-xs text-muted-foreground">Sales + Shipping - Discounts</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">Rs {salesStats?.totalSales.toFixed(2) || "0.00"}</div>
+                        <p className="text-xs text-muted-foreground">Gross product revenue</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Profit</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">Rs {salesStats?.totalProfit.toFixed(2) || "0.00"}</div>
+                        <p className="text-xs text-muted-foreground">Revenue - COGS (TBD)</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -155,18 +177,13 @@ export default function Sales() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                        <CardTitle className="text-sm font-medium">Extra Metrics</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">Rs {salesStats?.totalSales.toFixed(2) || "0.00"}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Coupons Used</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{salesStats?.couponsUsed || 0}</div>
+                    <CardContent className="text-sm">
+                        <div className="flex justify-between"><span>Shipping Fees:</span> <span>Rs {salesStats?.totalShipping.toFixed(2) || "0.00"}</span></div>
+                        <div className="flex justify-between"><span>COD Fees:</span> <span>Rs {salesStats?.totalCodFee.toFixed(2) || "0.00"}</span></div>
+                        <div className="flex justify-between"><span>Discounts Given:</span> <span className="text-red-500">-Rs {salesStats?.totalDiscount.toFixed(2) || "0.00"}</span></div>
+                        <div className="flex justify-between"><span>Coupons Used:</span> <span>{salesStats?.couponsUsed || 0}</span></div>
                     </CardContent>
                 </Card>
             </div>
@@ -180,9 +197,13 @@ export default function Sales() {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
                             <YAxis />
-                            <Tooltip />
+                            <Tooltip formatter={(value: number) => `Rs ${value.toFixed(2)}`} />
                             <Legend />
-                            <Bar dataKey="value" fill="#8884d8" />
+                            <Bar dataKey="value" name="Amount (Rs)">
+                                {chartData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </CardContent>

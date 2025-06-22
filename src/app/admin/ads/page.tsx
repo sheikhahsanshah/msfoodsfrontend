@@ -61,7 +61,7 @@ export default function AdsPage() {
         title: "",
         text: "",
         startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 7 days from now
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days from now
         location: "header" as "header" | "sidebar" | "footer",
         isActive: true,
     })
@@ -90,6 +90,10 @@ export default function AdsPage() {
     const [activeTab, setActiveTab] = useState("ads")
 
     const { toast } = useToast()
+
+    // New state variables
+    const [isStartDatePickerOpen, setStartDatePickerOpen] = useState(false)
+    const [isEndDatePickerOpen, setEndDatePickerOpen] = useState(false)
 
     // Helper function for authenticated API requests
     const authFetch = async (url: string, options: RequestInit = {}) => {
@@ -194,6 +198,16 @@ export default function AdsPage() {
     const handleAddAd = async (e: React.FormEvent) => {
         e.preventDefault()
 
+        // Validate date range
+        if (new Date(newAd.endDate) <= new Date(newAd.startDate)) {
+            toast({
+                variant: "destructive",
+                title: "Invalid Date Range",
+                description: "End date must be after start date",
+            })
+            return
+        }
+
         if (!mobileImage || !desktopImage) {
             toast({
                 variant: "destructive",
@@ -288,9 +302,20 @@ export default function AdsPage() {
         }
     }
 
-    // Update an existing ad
+    // Update an ad
     const handleUpdateAd = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Validate date range
+        if (new Date(currentAd!.endDate) <= new Date(currentAd!.startDate)) {
+            toast({
+                variant: "destructive",
+                title: "Invalid Date Range",
+                description: "End date must be after start date",
+            })
+            return
+        }
+
         if (!currentAd) return
 
         setIsLoading(true)
@@ -357,7 +382,7 @@ export default function AdsPage() {
             title: "",
             text: "",
             startDate: new Date().toISOString(),
-            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             location: "header",
             isActive: true,
         })
@@ -453,6 +478,20 @@ export default function AdsPage() {
         }
     }
 
+    // Calculate campaign duration
+    const getCampaignDuration = (startDate: string, endDate: string) => {
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+        const diffMs = end.getTime() - start.getTime()
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+        if (diffDays === 1) return "1 day"
+        if (diffDays < 7) return `${diffDays} days`
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks`
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months`
+        return `${Math.floor(diffDays / 365)} years`
+    }
+
     // Loading state
     if ((isLoading && !ads.length) || (isHeroLoading && !heroImages.length)) {
         return (
@@ -509,48 +548,128 @@ export default function AdsPage() {
                                             </div>
 
                                             {/* Date Range Pickers */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-4">
                                                 <div>
-                                                    <Label htmlFor="startDate">Start Date</Label>
-                                                    <div className="mt-1">
-                                                        <Popover>
-                                                            <PopoverTrigger asChild>
-                                                                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                                    <Calendar className="mr-2 h-4 w-4" />
-                                                                    {formatDate(newAd.startDate)}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-0">
-                                                                <CalendarComponent
-                                                                    mode="single"
-                                                                    selected={new Date(newAd.startDate)}
-                                                                    onSelect={(date) => date && setNewAd({ ...newAd, startDate: date.toISOString() })}
-                                                                    initialFocus
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
+                                                    <Label>Campaign Duration</Label>
+                                                    <p className="text-sm text-gray-500 mb-3">
+                                                        Set your custom start and end dates for the advertisement campaign
+                                                    </p>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <Label htmlFor="startDate">Start Date</Label>
+                                                        <div className="mt-1">
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                                                        <Calendar className="mr-2 h-4 w-4" />
+                                                                        {formatDate(newAd.startDate)}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-auto p-0">
+                                                                    <CalendarComponent
+                                                                        mode="single"
+                                                                        selected={new Date(newAd.startDate)}
+                                                                        onSelect={(date) => {
+                                                                            if (date) {
+                                                                                const newStartDate = date.toISOString()
+                                                                                setNewAd({ ...newAd, startDate: newStartDate })
+
+                                                                                // If end date is before new start date, update it
+                                                                                if (new Date(newAd.endDate) <= date) {
+                                                                                    const newEndDate = new Date(date.getTime() + 24 * 60 * 60 * 1000).toISOString() // 1 day after start
+                                                                                    setNewAd(prev => ({ ...prev, endDate: newEndDate }))
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} // Disable past dates
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <Label htmlFor="endDate">End Date</Label>
+                                                        <div className="mt-1">
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                                                        <Calendar className="mr-2 h-4 w-4" />
+                                                                        {formatDate(newAd.endDate)}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-auto p-0">
+                                                                    <CalendarComponent
+                                                                        mode="single"
+                                                                        selected={new Date(newAd.endDate)}
+                                                                        onSelect={(date) => date && setNewAd({ ...newAd, endDate: date.toISOString() })}
+                                                                        disabled={(date) => date <= new Date(newAd.startDate)} // Disable dates before or equal to start date
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </div>
+                                                        {new Date(newAd.endDate) <= new Date(newAd.startDate) && (
+                                                            <p className="text-sm text-red-500 mt-1">End date must be after start date</p>
+                                                        )}
                                                     </div>
                                                 </div>
 
+                                                {/* Quick Date Presets */}
                                                 <div>
-                                                    <Label htmlFor="endDate">End Date</Label>
-                                                    <div className="mt-1">
-                                                        <Popover>
-                                                            <PopoverTrigger asChild>
-                                                                <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                                                    <Calendar className="mr-2 h-4 w-4" />
-                                                                    {formatDate(newAd.endDate)}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-0">
-                                                                <CalendarComponent
-                                                                    mode="single"
-                                                                    selected={new Date(newAd.endDate)}
-                                                                    onSelect={(date) => date && setNewAd({ ...newAd, endDate: date.toISOString() })}
-                                                                    initialFocus
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
+                                                    <Label className="text-sm text-gray-600">Quick Presets</Label>
+                                                    <div className="flex flex-wrap gap-2 mt-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                const start = new Date()
+                                                                const end = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                                                setNewAd({ ...newAd, startDate: start.toISOString(), endDate: end.toISOString() })
+                                                            }}
+                                                        >
+                                                            1 Week
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                const start = new Date()
+                                                                const end = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                                                                setNewAd({ ...newAd, startDate: start.toISOString(), endDate: end.toISOString() })
+                                                            }}
+                                                        >
+                                                            1 Month
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                const start = new Date()
+                                                                const end = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+                                                                setNewAd({ ...newAd, startDate: start.toISOString(), endDate: end.toISOString() })
+                                                            }}
+                                                        >
+                                                            3 Months
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                const start = new Date()
+                                                                const end = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+                                                                setNewAd({ ...newAd, startDate: start.toISOString(), endDate: end.toISOString() })
+                                                            }}
+                                                        >
+                                                            1 Year
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -762,6 +881,9 @@ export default function AdsPage() {
                                                         <div className="flex flex-col space-y-1">
                                                             <div className="text-xs text-muted-foreground">Start: {formatDate(ad.startDate)}</div>
                                                             <div className="text-xs text-muted-foreground">End: {formatDate(ad.endDate)}</div>
+                                                            <div className="text-xs font-medium text-blue-600">
+                                                                Duration: {getCampaignDuration(ad.startDate, ad.endDate)}
+                                                            </div>
                                                             <div className="text-xs font-medium">
                                                                 {isAdActive(ad) ? (
                                                                     <span className="text-green-600">{getRemainingTime(ad.endDate)}</span>
@@ -776,8 +898,8 @@ export default function AdsPage() {
                                                     <TableCell>
                                                         <span
                                                             className={`px-2 py-1 rounded-full text-xs ${ad.isActive && isAdActive(ad)
-                                                                    ? "bg-green-100 text-green-800"
-                                                                    : "bg-red-100 text-red-800"
+                                                                ? "bg-green-100 text-green-800"
+                                                                : "bg-red-100 text-red-800"
                                                                 }`}
                                                         >
                                                             {ad.isActive && isAdActive(ad) ? "Active" : "Inactive"}
@@ -820,7 +942,7 @@ export default function AdsPage() {
                                                                                 <Input
                                                                                     id="edit-title"
                                                                                     value={currentAd.title}
-                                                                                    onChange={(e) => setCurrentAd({ ...currentAd, title: e.target.value })}
+                                                                                    onChange={(e) => setCurrentAd(prev => ({ ...prev, title: e.target.value }))}
                                                                                     required
                                                                                 />
                                                                             </div>
@@ -829,7 +951,7 @@ export default function AdsPage() {
                                                                                 <Textarea
                                                                                     id="edit-text"
                                                                                     value={currentAd.text || ""}
-                                                                                    onChange={(e) => setCurrentAd({ ...currentAd, text: e.target.value })}
+                                                                                    onChange={(e) => setCurrentAd(prev => ({ ...prev, text: e.target.value }))}
                                                                                     rows={3}
                                                                                 />
                                                                             </div>
@@ -853,10 +975,23 @@ export default function AdsPage() {
                                                                                                 <CalendarComponent
                                                                                                     mode="single"
                                                                                                     selected={new Date(currentAd.startDate)}
-                                                                                                    onSelect={(date) =>
-                                                                                                        date &&
-                                                                                                        setCurrentAd({ ...currentAd, startDate: date.toISOString() })
-                                                                                                    }
+                                                                                                    onSelect={(date) => {
+                                                                                                        if (date) {
+                                                                                                            const newStartDate = date.toISOString()
+                                                                                                            setCurrentAd(prev => {
+                                                                                                                const updated = { ...prev, startDate: newStartDate }
+
+                                                                                                                // If end date is before new start date, update it
+                                                                                                                if (new Date(prev.endDate) <= date) {
+                                                                                                                    const newEndDate = new Date(date.getTime() + 24 * 60 * 60 * 1000).toISOString() // 1 day after start
+                                                                                                                    updated.endDate = newEndDate
+                                                                                                                }
+
+                                                                                                                return updated
+                                                                                                            })
+                                                                                                        }
+                                                                                                    }}
+                                                                                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} // Disable past dates
                                                                                                     initialFocus
                                                                                                 />
                                                                                             </PopoverContent>
@@ -867,7 +1002,7 @@ export default function AdsPage() {
                                                                                 <div>
                                                                                     <Label htmlFor="edit-endDate">End Date</Label>
                                                                                     <div className="mt-1">
-                                                                                        <Popover>
+                                                                                        <Popover open={isEndDatePickerOpen} onOpenChange={setEndDatePickerOpen}>
                                                                                             <PopoverTrigger asChild>
                                                                                                 <Button
                                                                                                     variant="outline"
@@ -881,14 +1016,21 @@ export default function AdsPage() {
                                                                                                 <CalendarComponent
                                                                                                     mode="single"
                                                                                                     selected={new Date(currentAd.endDate)}
-                                                                                                    onSelect={(date) =>
-                                                                                                        date && setCurrentAd({ ...currentAd, endDate: date.toISOString() })
-                                                                                                    }
+                                                                                                    onSelect={(date) => {
+                                                                                                        if (date) {
+                                                                                                            setCurrentAd(prev => ({ ...prev, endDate: date.toISOString() }))
+                                                                                                        }
+                                                                                                        setEndDatePickerOpen(false)
+                                                                                                    }}
+                                                                                                    disabled={(date) => date <= new Date(currentAd.startDate)} // Disable dates before or equal to start date
                                                                                                     initialFocus
                                                                                                 />
                                                                                             </PopoverContent>
                                                                                         </Popover>
                                                                                     </div>
+                                                                                    {new Date(currentAd.endDate) <= new Date(currentAd.startDate) && (
+                                                                                        <p className="text-sm text-red-500 mt-1">End date must be after start date</p>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
 
@@ -897,10 +1039,10 @@ export default function AdsPage() {
                                                                                 <Select
                                                                                     value={currentAd.location}
                                                                                     onValueChange={(value) =>
-                                                                                        setCurrentAd({
-                                                                                            ...currentAd,
+                                                                                        setCurrentAd(prev => ({
+                                                                                            ...prev,
                                                                                             location: value as "header" | "sidebar" | "footer",
-                                                                                        })
+                                                                                        }))
                                                                                     }
                                                                                 >
                                                                                     <SelectTrigger>
@@ -981,7 +1123,7 @@ export default function AdsPage() {
                                                                                     id="edit-isActive"
                                                                                     checked={currentAd.isActive}
                                                                                     onCheckedChange={(checked) =>
-                                                                                        setCurrentAd({ ...currentAd, isActive: checked })
+                                                                                        setCurrentAd(prev => ({ ...prev, isActive: checked }))
                                                                                     }
                                                                                 />
                                                                                 <Label htmlFor="edit-isActive">Active</Label>

@@ -36,7 +36,7 @@ interface OrderItem {
 }
 
 interface Order {
-    paymentScreenshot: string 
+    paymentScreenshot: string
     _id: string
     user: {
         name: string
@@ -46,6 +46,7 @@ interface Order {
     subtotal: number
     shippingCost: number
     discount: number
+    codFee?: number
     status: string
     createdAt: string
     items: OrderItem[]
@@ -62,6 +63,16 @@ interface Order {
     paymentStatus: string       // ← add this
     trackingId?: string
     deliveredAt?: string
+    couponUsed?: {
+        _id: string
+        code: string
+        discountType: 'percentage' | 'fixed'
+        discountValue: number
+        eligibleProducts: {
+            _id: string
+            name: string
+        }[]
+    }
 }
 
 const API_URL =
@@ -306,7 +317,7 @@ export default function Orders() {
         // Shipping address
         doc.text("Shipping Address:", 120, 55)
         doc.text(`${currentOrder.shippingAddress.address}`, 120, 62)
-        doc.text(`${currentOrder.shippingAddress.city}, ${currentOrder.shippingAddress.postalCode}`, 120, 69)
+        doc.text(`${currentOrder.shippingAddress.city}${currentOrder.shippingAddress.postalCode ? `, ${currentOrder.shippingAddress.postalCode}` : ''}`, 120, 69)
         doc.text(`${currentOrder.shippingAddress.country}`, 120, 76)
 
         // Order items table with product type information
@@ -335,9 +346,35 @@ export default function Orders() {
         // Order summary
         doc.text("Order Summary:", 14, finalY + 10)
         doc.text(`Subtotal: Rs ${currentOrder.subtotal.toFixed(2)}`, 14, finalY + 17)
-        doc.text(`Shipping: Rs ${currentOrder.shippingCost.toFixed(2)}`, 14, finalY + 24)
-        doc.text(`Discount: Rs ${currentOrder.discount.toFixed(2)}`, 14, finalY + 31)
-        doc.text(`Total: Rs ${currentOrder.totalAmount.toFixed(2)}`, 14, finalY + 38)
+
+        let summaryY = finalY + 24;
+
+        if (currentOrder.couponUsed && currentOrder.couponUsed.eligibleProducts && currentOrder.couponUsed.eligibleProducts.length > 0) {
+            const eligibleSubtotal = currentOrder.items
+                .filter(item => currentOrder.couponUsed!.eligibleProducts.some(p => p._id === item.product))
+                .reduce((acc, item) => acc + (item.priceOption.price * item.quantity), 0)
+                .toFixed(2)
+            doc.text(`Eligible Subtotal: Rs ${eligibleSubtotal}`, 14, summaryY)
+            summaryY += 7
+        }
+
+        if (currentOrder.subtotal <= 2000) {
+            doc.text(`Shipping: Rs ${currentOrder.shippingCost.toFixed(2)}`, 14, summaryY)
+        } else {
+            doc.text(`Shipping: Free`, 14, summaryY)
+        }
+        summaryY += 7
+
+        doc.text(`Discount: -Rs ${currentOrder.discount.toFixed(2)}`, 14, summaryY)
+        summaryY += 7
+
+        if (currentOrder.paymentMethod === 'COD' && currentOrder.codFee && currentOrder.codFee > 0) {
+            doc.text(`COD Fee: Rs ${currentOrder.codFee.toFixed(2)}`, 14, summaryY)
+            summaryY += 7
+        }
+
+        doc.text(`Total: Rs ${currentOrder.totalAmount.toFixed(2)}`, 14, summaryY)
+        summaryY += 7
 
         // Payment information
         doc.text(`Payment Method: ${currentOrder.paymentMethod}`, 120, finalY + 10)
@@ -649,7 +686,7 @@ export default function Orders() {
                                                                             <p className="font-medium">{currentOrder.shippingAddress.fullName}</p>
                                                                             <p>{currentOrder.shippingAddress.address}</p>
                                                                             <p>
-                                                                                {currentOrder.shippingAddress.city}, {currentOrder.shippingAddress.postalCode}
+                                                                                {currentOrder.shippingAddress.city}${currentOrder.shippingAddress.postalCode ? `, ${currentOrder.shippingAddress.postalCode}` : ''}
                                                                             </p>
                                                                             <p>{currentOrder.shippingAddress.country}</p>
                                                                             <p>Phone: {currentOrder.shippingAddress.phone}</p>
@@ -674,51 +711,60 @@ export default function Orders() {
                                                                             </TableRow>
                                                                         </TableHeader>
                                                                         <TableBody>
-                                                                            {currentOrder.items.map((item, index) => (
-                                                                                <TableRow key={index}>
-                                                                                    <TableCell>
-                                                                                        <div className="flex items-center gap-3">
-                                                                                            <Image
-                                                                                                src={item.image || "/placeholder.svg"}
-                                                                                                alt={item.name}
-                                                                                                width={40}
-                                                                                                height={40}
-                                                                                                className="object-cover rounded-md"
-                                                                                            />
-                                                                                            <div>
-                                                                                                <div className="font-medium">{item.name}</div>
+                                                                            {currentOrder.items.map((item, index) => {
+                                                                                const isDiscounted = currentOrder.couponUsed?.eligibleProducts?.some(p => p._id === item.product) || (!currentOrder.couponUsed?.eligibleProducts?.length && currentOrder.discount > 0);
+
+                                                                                return (
+                                                                                    <TableRow key={index}>
+                                                                                        <TableCell>
+                                                                                            <div className="flex items-center gap-3">
+                                                                                                <Image
+                                                                                                    src={item.image || "/placeholder.svg"}
+                                                                                                    alt={item.name}
+                                                                                                    width={40}
+                                                                                                    height={40}
+                                                                                                    className="object-cover rounded-md"
+                                                                                                />
+                                                                                                <div>
+                                                                                                    <div className="font-medium">{item.name}</div>
+                                                                                                    {isDiscounted && (
+                                                                                                        <Badge variant="secondary" className="text-xs text-green-600 border-green-200">
+                                                                                                            ✓ Discounted
+                                                                                                        </Badge>
+                                                                                                    )}
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    </TableCell>
-                                                                                    <TableCell>
-                                                                                        <div className="flex items-center gap-1">
-                                                                                            {item.priceOption.type === "weight-based" ? (
-                                                                                                <>
-                                                                                                    <Scale className="h-4 w-4 text-gray-500" />
-                                                                                                    <span className="font-medium">
-                                                                                                        Weight ({item.priceOption.weight}g)
-                                                                                                    </span>
-                                                                                                </>
-                                                                                            ) : (
-                                                                                                <>
-                                                                                                    <Package className="h-4 w-4 text-gray-500" />
-                                                                                                    <span className="font-medium">Packet</span>
-                                                                                                </>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    </TableCell>
-                                                                                    <TableCell>{item.quantity}</TableCell>
-                                                                                    <TableCell>
-                                                                                        Rs {item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}
-                                                                                    </TableCell>
-                                                                                    <TableCell>
-                                                                                        Rs{" "}
-                                                                                        {item.priceOption?.price
-                                                                                            ? (item.quantity * item.priceOption.price).toFixed(2)
-                                                                                            : "0.00"}
-                                                                                    </TableCell>
-                                                                                </TableRow>
-                                                                            ))}
+                                                                                        </TableCell>
+                                                                                        <TableCell>
+                                                                                            <div className="flex items-center gap-1">
+                                                                                                {item.priceOption.type === "weight-based" ? (
+                                                                                                    <>
+                                                                                                        <Scale className="h-4 w-4 text-gray-500" />
+                                                                                                        <span className="font-medium">
+                                                                                                            Weight ({item.priceOption.weight}g)
+                                                                                                        </span>
+                                                                                                    </>
+                                                                                                ) : (
+                                                                                                    <>
+                                                                                                        <Package className="h-4 w-4 text-gray-500" />
+                                                                                                        <span className="font-medium">Packet</span>
+                                                                                                    </>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </TableCell>
+                                                                                        <TableCell>{item.quantity}</TableCell>
+                                                                                        <TableCell>
+                                                                                            Rs {item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}
+                                                                                        </TableCell>
+                                                                                        <TableCell>
+                                                                                            Rs{" "}
+                                                                                            {item.priceOption?.price
+                                                                                                ? (item.quantity * item.priceOption.price).toFixed(2)
+                                                                                                : "0.00"}
+                                                                                        </TableCell>
+                                                                                    </TableRow>
+                                                                                )
+                                                                            })}
                                                                         </TableBody>
                                                                     </Table>
                                                                 </CardContent>
@@ -733,14 +779,37 @@ export default function Orders() {
                                                                             <span className="text-muted-foreground">Subtotal:</span>
                                                                             <span>Rs {currentOrder.subtotal.toFixed(2)}</span>
                                                                         </div>
+
+                                                                        {currentOrder.couponUsed && (currentOrder.couponUsed.eligibleProducts?.length > 0) && (
+                                                                            <div className="flex justify-between text-sm">
+                                                                                <span className="text-muted-foreground pl-4">Eligible Subtotal:</span>
+                                                                                <span>Rs {
+                                                                                    currentOrder.items
+                                                                                        .filter(item => currentOrder.couponUsed!.eligibleProducts.some(p => p._id === item.product))
+                                                                                        .reduce((acc, item) => acc + (item.priceOption.price * item.quantity), 0)
+                                                                                        .toFixed(2)
+                                                                                }</span>
+                                                                            </div>
+                                                                        )}
+
                                                                         <div className="flex justify-between">
                                                                             <span className="text-muted-foreground">Shipping:</span>
-                                                                            <span>Rs {currentOrder.shippingCost.toFixed(2)}</span>
+                                                                            {currentOrder.subtotal <= 2000 ? (
+                                                                                <span>Rs {currentOrder.shippingCost.toFixed(2)}</span>
+                                                                            ) : (
+                                                                                <span className="text-green-600 font-medium">Free</span>
+                                                                            )}
                                                                         </div>
                                                                         <div className="flex justify-between">
                                                                             <span className="text-muted-foreground">Discount:</span>
-                                                                            <span>-Rs {currentOrder.discount.toFixed(2)}</span>
+                                                                            <span className="font-medium text-green-600">-Rs {currentOrder.discount.toFixed(2)}</span>
                                                                         </div>
+                                                                        {currentOrder.paymentMethod === 'COD' && currentOrder.codFee && currentOrder.codFee > 0 && (
+                                                                            <div className="flex justify-between">
+                                                                                <span className="text-muted-foreground">COD Fee:</span>
+                                                                                <span className="font-medium text-orange-600">Rs {currentOrder.codFee.toFixed(2)}</span>
+                                                                            </div>
+                                                                        )}
                                                                         <div className="flex justify-between font-bold text-lg pt-2 border-t">
                                                                             <span>Total:</span>
                                                                             <span>Rs {currentOrder.totalAmount.toFixed(2)}</span>

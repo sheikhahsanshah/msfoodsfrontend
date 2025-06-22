@@ -1849,7 +1849,7 @@ function UserDetails({ user }: { user: User }) {
                                             <div>
                                                 <p>{address.street}</p>
                                                 <p>
-                                                    {address.city}, {address.postalCode}
+                                                    {address.city}{address.postalCode ? `, ${address.postalCode}` : ''}
                                                 </p>
                                                 <p>{address.country}</p>
                                             </div>
@@ -1915,7 +1915,7 @@ function UserDetails({ user }: { user: User }) {
 }
 
 // SignupMethodStats Component
-function SignupMethodStats({  }: { stats: UserStats | null }) {
+function SignupMethodStats({ }: { stats: UserStats | null }) {
     const [activeTab, setActiveTab] = useState<"email" | "phone">("email")
     const [users, setUsers] = useState<User[]>([])
     const [isLoading, setIsLoading] = useState(false)

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LayoutDashboard, Box, TicketPercent, Star, List, ShoppingCart, LineChart, Home, Megaphone, User } from "lucide-react"
+import { LayoutDashboard, Box, TicketPercent, Star, List, ShoppingCart, LineChart, Home, Megaphone, User, Mail } from "lucide-react"
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
@@ -48,6 +48,11 @@ export default function AdminSidebar() {
             href: "/admin/users",
             icon: User,
             label: "Users Management",
+        },
+        {
+            href: "/admin/email-marketing",
+            icon: Mail,
+            label: "Email Marketing",
         },
         {
             href: "/admin/ads",

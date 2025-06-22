@@ -46,7 +46,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "msFoods | Authentic Spices & Herbs Online Store",
         description:
-            "Buy natural and organic spices and herbs online. Discover msFoods’ rich flavors and premium quality.",
+            "Buy natural and organic spices and herbs online. Discover msFoods' rich flavors and premium quality.",
         images: ["https://www.msfoods.com/og-image.jpg"],
     },
     metadataBase: new URL("https://www.msfoods.com"),
@@ -61,7 +61,6 @@ export default function RootLayout({
         <html lang="en">
             <head>
                 <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-                <link rel="canonical" href="https://www.msfoods.com" />
                 <meta name="google-site-verification" content="em5HlzcZER9QnGqyqO5Z7b6sbyVyVDVVa0ByJOqCBa0" />
             </head>
             <body className={dmSans.className}>

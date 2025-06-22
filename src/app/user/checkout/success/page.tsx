@@ -106,7 +106,7 @@ function AuthenticatedSuccess() {
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">
                                 {order.shippingAddress.fullName}, {order.shippingAddress.address},{" "}
-                                {order.shippingAddress.city}, {order.shippingAddress.postalCode},{" "}
+                                {order.shippingAddress.city}{order.shippingAddress.postalCode ? `, ${order.shippingAddress.postalCode}` : ''}{" "}
                                 {order.shippingAddress.country}
                             </p>
                             <div className="mt-2 flex items-center text-sm text-gray-500">

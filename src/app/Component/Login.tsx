@@ -220,24 +220,24 @@ export default function LoginPage() {
                                     }}
                                     className="w-full"
                                 >
-                                    <TabsList className="grid w-full grid-cols-2 bg-gray-100/50 border border-gray-200/50 p-1 rounded-xl">
+                                    <TabsList className="flex justify-center  bg-gray-100/50 border border-gray-200/50 p-1 rounded-xl">
                                         <TabsTrigger
                                             value="email"
-                                            className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
+                                            className="flex w-full  items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
                                         >
                                             <Mail className="h-4 w-4" />
                                             Email
                                         </TabsTrigger>
-                                        <TabsTrigger
+                                        {/* <TabsTrigger
                                             value="phone"
                                             className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200"
                                         >
                                             <Phone className="h-4 w-4" />
                                             Phone
-                                        </TabsTrigger>
+                                        </TabsTrigger> */}
                                     </TabsList>
 
-                                    {/* ——— EMAIL LOGIN ——— */}
+                                   
                                     <TabsContent
                                         value="email"
                                         className="space-y-4 mt-6"
@@ -345,7 +345,7 @@ export default function LoginPage() {
                                         </Form>
                                     </TabsContent>
 
-                                    {/* ——— PHONE LOGIN ——— */}
+                                 
                                     <TabsContent
                                         value="phone"
                                         className="space-y-4 mt-6"
@@ -374,7 +374,7 @@ export default function LoginPage() {
                                                                     />
                                                                 </div>
                                                             </FormControl>
-                                                            {/* this will pick up your Zod error message */}
+                                                            
                                                             <FormMessage className="text-red-500 text-xs mt-1" />
                                                         </FormItem>
                                                     )}
