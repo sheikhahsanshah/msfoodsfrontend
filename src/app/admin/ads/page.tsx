@@ -91,8 +91,7 @@ export default function AdsPage() {
 
     const { toast } = useToast()
 
-    // New state variables
-    const [isStartDatePickerOpen, setStartDatePickerOpen] = useState(false)
+    // State for end date picker
     const [isEndDatePickerOpen, setEndDatePickerOpen] = useState(false)
 
     // Helper function for authenticated API requests
@@ -942,7 +941,7 @@ export default function AdsPage() {
                                                                                 <Input
                                                                                     id="edit-title"
                                                                                     value={currentAd.title}
-                                                                                    onChange={(e) => setCurrentAd(prev => ({ ...prev, title: e.target.value }))}
+                                                                                    onChange={(e) => setCurrentAd(prev => prev ? { ...prev, title: e.target.value } : null)}
                                                                                     required
                                                                                 />
                                                                             </div>
@@ -951,7 +950,7 @@ export default function AdsPage() {
                                                                                 <Textarea
                                                                                     id="edit-text"
                                                                                     value={currentAd.text || ""}
-                                                                                    onChange={(e) => setCurrentAd(prev => ({ ...prev, text: e.target.value }))}
+                                                                                    onChange={(e) => setCurrentAd(prev => prev ? { ...prev, text: e.target.value } : null)}
                                                                                     rows={3}
                                                                                 />
                                                                             </div>
@@ -979,6 +978,7 @@ export default function AdsPage() {
                                                                                                         if (date) {
                                                                                                             const newStartDate = date.toISOString()
                                                                                                             setCurrentAd(prev => {
+                                                                                                                if (!prev) return null
                                                                                                                 const updated = { ...prev, startDate: newStartDate }
 
                                                                                                                 // If end date is before new start date, update it
@@ -1018,7 +1018,7 @@ export default function AdsPage() {
                                                                                                     selected={new Date(currentAd.endDate)}
                                                                                                     onSelect={(date) => {
                                                                                                         if (date) {
-                                                                                                            setCurrentAd(prev => ({ ...prev, endDate: date.toISOString() }))
+                                                                                                            setCurrentAd(prev => prev ? { ...prev, endDate: date.toISOString() } : null)
                                                                                                         }
                                                                                                         setEndDatePickerOpen(false)
                                                                                                     }}
@@ -1039,10 +1039,10 @@ export default function AdsPage() {
                                                                                 <Select
                                                                                     value={currentAd.location}
                                                                                     onValueChange={(value) =>
-                                                                                        setCurrentAd(prev => ({
+                                                                                        setCurrentAd(prev => prev ? {
                                                                                             ...prev,
                                                                                             location: value as "header" | "sidebar" | "footer",
-                                                                                        }))
+                                                                                        } : null)
                                                                                     }
                                                                                 >
                                                                                     <SelectTrigger>
@@ -1123,7 +1123,7 @@ export default function AdsPage() {
                                                                                     id="edit-isActive"
                                                                                     checked={currentAd.isActive}
                                                                                     onCheckedChange={(checked) =>
-                                                                                        setCurrentAd(prev => ({ ...prev, isActive: checked }))
+                                                                                        setCurrentAd(prev => prev ? { ...prev, isActive: checked } : null)
                                                                                     }
                                                                                 />
                                                                                 <Label htmlFor="edit-isActive">Active</Label>

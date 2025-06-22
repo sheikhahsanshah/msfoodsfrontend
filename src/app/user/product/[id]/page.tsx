@@ -341,7 +341,7 @@ export default function ProductDetail() {
 
     // Get available price types
     const availablePriceTypes = Array.from(new Set(product.priceOptions.map((option) => option.type)))
-   
+
     const getCategoryColor = () => {
         const colors = [
             "from-rose-500 to-orange-500",
@@ -354,14 +354,14 @@ export default function ProductDetail() {
 
         // generate random 
 
-        const charSum= Math.floor(Math.random() * 1000)
+        const charSum = Math.floor(Math.random() * 1000)
         return colors[charSum % colors.length]
     }
 
     // Get appropriate icon for category
     const getCategoryIcon = () => {
-       
-       
+
+
         return Tag
     }
 
@@ -559,11 +559,11 @@ export default function ProductDetail() {
                             </div>
 
                             {/* Categories */}
-                           
+
 
                             <div className="pt-2 pb-2">
                                 <div className="flex items-center gap-2 mb-3">
-                                 
+
                                     <h3 className="text-lg font-medium">Categories</h3>
                                 </div>
 
@@ -758,8 +758,8 @@ export default function ProductDetail() {
                                                                     <Star
                                                                         key={star}
                                                                         className={`h-4 w-4 ${star <= review.rating
-                                                                                ? "text-yellow-400 fill-yellow-400"
-                                                                                : "text-gray-300"
+                                                                            ? "text-yellow-400 fill-yellow-400"
+                                                                            : "text-gray-300"
                                                                             }`}
                                                                     />
                                                                 ))}
@@ -842,17 +842,19 @@ export default function ProductDetail() {
                                 >
                                     <X className="h-6 w-6" />
                                 </button>
-                                <img
+                                <Image
                                     src={selectedReviewImage}
                                     alt="Enlarged review"
-                                    className="max-w-[90vw] max-h-[90vh] mx-auto block"
+                                    width={800}
+                                    height={600}
+                                    className="max-w-[90vw] max-h-[90vh] mx-auto block object-contain"
                                 />
                             </div>
                         </div>
                     )}
 
 
-                    
+
                     {/* Related Products */}
                     {relatedProducts.length > 0 && (
                         <div className="mt-16">

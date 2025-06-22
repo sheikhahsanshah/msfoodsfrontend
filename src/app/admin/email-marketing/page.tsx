@@ -6,7 +6,6 @@ import Image from "next/image"
 import { useState, useEffect, useCallback } from "react"
 import {
     Search,
-    Filter,
     Mail,
     Send,
     Users,
@@ -16,17 +15,9 @@ import {
     RefreshCw,
     ChevronLeft,
     ChevronRight,
-    ChevronUp,
-    ChevronDown,
     Plus,
-    Trash2,
-    Eye,
-    CalendarDays,
     UserCheck,
     Target,
-    Image as ImageIcon,
-    FileText,
-    BarChart3,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -46,7 +37,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { authFetch } from "@/app/utils/auth-helpers"
 
 // Types

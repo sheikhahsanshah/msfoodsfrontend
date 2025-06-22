@@ -51,7 +51,7 @@ export default function CheckoutPage() {
     const [couponCode, setCouponCode] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
     const [couponDiscount, setCouponDiscount] = useState(0)
-    const [eligibleItems, setEligibleItems] = useState<any[]>([])
+    const [eligibleItems, setEligibleItems] = useState<EligibleItem[]>([])
     const [eligibleSubtotal, setEligibleSubtotal] = useState(0)
     const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(true)
     const [shippingFee, setShippingFee] = useState(0)
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
                 setCodFee(data.codFee ?? 0);
                 // console.log("Updated shipping settings - Fee:", data.shippingFee, "Threshold:", data.freeShippingThreshold) // Debug log
             }
-        } catch (error) {
+        } catch {
             // console.error("Failed to fetch shipping cost:", error)
             toast({
                 title: "Error",
@@ -811,6 +811,15 @@ interface CartItem {
     weight?: number;
 }
 
+interface EligibleItem {
+    productId: string | number;
+    priceOptionId: string | number;
+    name: string;
+    price: number;
+    quantity: number;
+    discount: number;
+}
+
 interface OrderSummaryProps {
     cart: CartItem[]
     subtotal: number
@@ -827,7 +836,7 @@ interface OrderSummaryProps {
     handleRemoveCoupon: () => void
     isSubmitting: boolean
     isAuthenticated: boolean
-    eligibleItems?: any[]
+    eligibleItems?: EligibleItem[]
     eligibleSubtotal?: number
 }
 
