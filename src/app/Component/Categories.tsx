@@ -134,7 +134,7 @@ export default function CreativeCategoryShowcase() {
                 onTouchEnd={handleTouchEnd}
                 onWheel={handleWheel}
             >
-               
+
 
                 {/* Category wheel */}
                 <div className="absolute left-0 right-0 top-[30%]">
@@ -191,7 +191,7 @@ export default function CreativeCategoryShowcase() {
                                                     exit={{ opacity: 0, height: 0 }}
                                                     transition={{ duration: 0.2 }}
                                                 >
-                                                    <Link href={`/products/${category.name}`}>
+                                                    <Link href={`/products/${encodeURIComponent(category.name)}`}>
                                                         <motion.button
                                                             className="flex items-center gap-2 text-sm font-medium mt-1 px-4 py-2 rounded-full"
                                                             style={{ backgroundColor: bgColor }}
@@ -212,21 +212,21 @@ export default function CreativeCategoryShowcase() {
 
                 {/* Swipe indicator */}
             </div>
-                <div className="  flex justify-center items-center text-sm text-gray-500 pointer-events-none">
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
-                        className="flex flex-col items-center"
-                    >
-                        <div className="text-center mb-1">Swipe to explore</div>
-                        <div className="flex flex-col items-center gap-1">
-                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
-                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
-                            <div className="w-1 h-1 rounded-full bg-gray-400"></div>
-                        </div>
-                    </motion.div>
-                </div>
+            <div className="  flex justify-center items-center text-sm text-gray-500 pointer-events-none">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ repeat: Number.POSITIVE_INFINITY, duration: 2 }}
+                    className="flex flex-col items-center"
+                >
+                    <div className="text-center mb-1">Swipe to explore</div>
+                    <div className="flex flex-col items-center gap-1">
+                        <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                        <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                        <div className="w-1 h-1 rounded-full bg-gray-400"></div>
+                    </div>
+                </motion.div>
+            </div>
 
             {/* Dots indicator */}
             <div className="flex justify-center mt-6 gap-2">
