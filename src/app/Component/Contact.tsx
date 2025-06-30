@@ -141,12 +141,9 @@ export default function Contact() {
                 {/* Right Section - Contact Details */}
                 <div className="lg:w-1/3 space-y-12">
                     <div>
-                        <h3 className="text-2xl font-bold text-black">Our Location</h3>
+                        
                         <p className="mt-3 text-gray-700">
-                            Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
-                        </p>
-                        <p className="mt-3 text-gray-700">
-                            Phone: <span className="whitespace-nowrap">+923214729048</span>
+                            Phone: <span className="whitespace-nowrap">+923085128136</span>
                         </p>
                         <p className="mt-1 text-gray-700">
                             Email: <span className="whitespace-nowrap">msfoodscontact@gmail.com</span>
@@ -158,6 +155,11 @@ export default function Contact() {
                         <p className="mt-3 text-gray-700">Mon - Fri: 9:00 AM – 6:00 PM</p>
                         <p className="mt-3 text-gray-700">Saturday: 10:00 AM – 4:00 PM</p>
                         <p className="mt-3 text-gray-700">Sunday: Closed</p>
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-black">Delivery Hours</h3>
+                        <p className="mt-3 text-gray-700">Mon - Sun: 10:00 AM – 8:00 PM</p>
+                        
                     </div>
                 </div>
             </div>

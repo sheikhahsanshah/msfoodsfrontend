@@ -85,11 +85,11 @@ const Header = () => {
     const { getTotalItems, getTotalPrice } = useCart()
     const { user, logout } = useUser()
     const texts = [
-        "Minimum Order Amount Rs 3,000",
-        "Free Shipping on Orders Above Rs 5,000",
+        "Minimum Order Amount Rs 800",
+        "Free Shipping on Orders Above Rs 2,000",
         "Limited Time Offer: Get 10% Off on Your First Purchase",
         "Exclusive Deals for Members – Sign Up Now!",
-        "Cash on Delivery Available Nationwide",
+        "Cash on Delivery Available only in Laore",
         "Hassle-Free Returns & Refunds Within 7 Days",
     ]
     const [isMenuOpen, setIsMenuOpen] = useState(false)

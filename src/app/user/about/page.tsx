@@ -11,7 +11,7 @@ export default function AboutUs() {
             <section className="container py-12 text-center">
                 <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">About msFoods</h1>
                 <p className="text-xl text-gray-800 max-w-3xl mx-auto">
-                    Your trusted source for premium spices, dry fruits, and natural ingredients since 2015.
+                    Your trusted source for premium spices, dry fruits, and natural ingredients since years.
                 </p>
                 <Separator className="my-8 max-w-md mx-auto bg-blue-100" />
             </section>

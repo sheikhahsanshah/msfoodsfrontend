@@ -42,8 +42,8 @@ const HeroSection = () => {
         fetchHeroImages();
     }, [fetchHeroImages]);
 
-    const desktopImageSrc = heroImages[0]?.desktopImage?.url || "/msd.png";
-    const mobileImageSrc = heroImages[0]?.mobileImage?.url || "/msm.png";
+    const desktopImageSrc = heroImages[0]?.desktopImage?.url || "/Banner.jpg";
+    const mobileImageSrc = heroImages[0]?.mobileImage?.url || "/Banner.jpg";
 
     return (
         <section className="w-full h-[500px] relative mb-10">
