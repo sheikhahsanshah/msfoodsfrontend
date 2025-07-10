@@ -664,14 +664,14 @@ const Header = () => {
                     <Clock className="h-5 w-5 text-yellow-600" />
                     <div>
                         <p className="text-xs text-gray-600">Delivery Hours</p>
-                        <p className="text-base font-semibold text-yellow-800">10:00 AM – 6:00 PM</p>
+                        <p className="text-base font-semibold text-yellow-800">10:00 AM – 8:00 PM</p>
                     </div>
                 </div>
                 <div className="flex items-center justify-end space-x-3">
                     <Truck className="h-5 w-5 text-yellow-600" />
                     <div>
                         <p className="text-xs text-gray-600">Minimum Order</p>
-                        <p className="text-base font-semibold text-yellow-800">Rs 3,000</p>
+                        <p className="text-base font-semibold text-yellow-800">Rs 800</p>
                     </div>
                 </div>
             </div>
