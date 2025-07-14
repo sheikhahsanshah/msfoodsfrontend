@@ -85,11 +85,10 @@ const Header = () => {
     const { getTotalItems, getTotalPrice } = useCart()
     const { user, logout } = useUser()
     const texts = [
-        "Minimum Order Amount Rs 800",
-        "Free Shipping on Orders Above Rs 2,000",
-        "Limited Time Offer: Get 10% Off on Your First Purchase",
+        "Delivering In only Lahore ! ",
+        "Free shipping on orders above 2000 ",
+        "Shipping within a single day",
         "Exclusive Deals for Members – Sign Up Now!",
-        "Cash on Delivery Available only in Laore",
         "Hassle-Free Returns & Refunds Within 7 Days",
     ]
     const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -467,7 +466,7 @@ const Header = () => {
                 <motion.div
                     className="flex space-x-10 text-sm font-medium whitespace-nowrap"
                     animate={{ x: ["100%", "-100%"] }}
-                    transition={{ ease: "linear", duration: 30, repeat: Number.POSITIVE_INFINITY }}
+                    transition={{ ease: "linear", duration: 25, repeat: Number.POSITIVE_INFINITY }}
                 >
                     {texts.map((text, index) => (
                         <span key={index} className="px-4">
