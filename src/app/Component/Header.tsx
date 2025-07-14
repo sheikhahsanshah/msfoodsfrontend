@@ -309,7 +309,7 @@ const Header = () => {
     const navLinks = [
         { name: "Categories", href: "/categories", hasChildren: false },
         { name: "Our Products", href: "/products" },
-        { name: "Reviews", href: "/reviews" },
+        { name: "Messages", href: "/reviews" },
         { name: "About us", href: "/user/about" },
         { name: "Contact Us", href: "/contact" },
     ]

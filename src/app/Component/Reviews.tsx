@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 const reviews = [
   {
     id: 1,
-    name: "Ali Leghari",
+    name: "Ali Haider",
     role: "Customer",
     content:
       "MS Foods offers the best selection of premium-quality spices and dry fruits. The aroma of their freshly packed spices is simply unmatched, and the nuts are always fresh and crunchy. A must-visit for anyone who loves authentic flavors!",
