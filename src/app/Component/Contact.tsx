@@ -143,7 +143,7 @@ export default function Contact() {
                     <div>
                         
                         <p className="mt-3 text-gray-700">
-                            Phone: <span className="whitespace-nowrap">+923085128136</span>
+                            Phone: <span className="whitespace-nowrap">0324-8120893 / 0314-0740608  </span>
                         </p>
                         <p className="mt-1 text-gray-700">
                             Email: <span className="whitespace-nowrap">msfoodscontact@gmail.com</span>
@@ -152,8 +152,8 @@ export default function Contact() {
 
                     <div>
                         <h3 className="text-2xl font-bold text-black">Business Hours</h3>
-                        <p className="mt-3 text-gray-700">Mon - Fri: 9:00 AM – 6:00 PM</p>
-                        <p className="mt-3 text-gray-700">Saturday: 10:00 AM – 4:00 PM</p>
+                        <p className="mt-3 text-gray-700">Mon - Fri: 9:00 AM – 8:00 PM</p>
+                        <p className="mt-3 text-gray-700">Saturday: 10:00 AM – 7:00 PM</p>
                         <p className="mt-3 text-gray-700">Sunday: Closed</p>
                     </div>
                     <div>
