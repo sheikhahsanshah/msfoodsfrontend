@@ -12,10 +12,8 @@ const Footer = () => {
                         </Link>
                         <div className="mt-4 space-y-2">
                             <p className="text-sm">Email: msfoodscontact@gmail.com</p>
-                            <p className="text-sm">Phone: +923214729048</p>
-                            <p className="text-sm">
-                                Address: Factory No. 23, HDR Industrial Estate, Gajjumata near Sabzi Mandi, Lahore
-                            </p>
+                            <p className="text-sm">Phone: 0324-8120893</p>
+                            
                            
                         </div>
                     </div>
@@ -73,19 +71,7 @@ const Footer = () => {
                     </div>
 
                     <div>
-                        <h4 className="text-lg font-semibold mb-3">Newsletter</h4>
-                        <p className="text-sm mb-3">Sign up for our newsletter and get 10% off your first purchase</p>
-                        <form className="relative flex">
-                            <input
-                                type="email"
-                                placeholder="Enter your email"
-                                className="border border-gray-300 p-2 rounded-l w-full text-sm"
-                                required
-                            />
-                            <button className="bg-black text-white p-2 rounded-r">
-                                <ArrowRight size={20} />
-                            </button>
-                        </form>
+                   
                         <div className="flex gap-4 mt-4">
                             <Link href={"https://www.facebook.com/share/12CHsKxqB85/"} target="_blank" aria-label="Facebook">
                                 <Facebook size={20} />
