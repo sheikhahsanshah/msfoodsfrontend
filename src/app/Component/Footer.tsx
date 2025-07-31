@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Facebook, Instagram, Twitter, Youtube, ChevronDown } from "lucide-react"
+import {  ChevronDown } from "lucide-react"
 
 const Footer = () => {
     return (
@@ -73,7 +73,7 @@ const Footer = () => {
                     <div>
                    
                         <div className="flex gap-4 mt-4">
-                            <Link href={"https://www.facebook.com/share/12CHsKxqB85/"} target="_blank" aria-label="Facebook">
+                            {/* <Link href={"https://www.facebook.com/share/12CHsKxqB85/"} target="_blank" aria-label="Facebook">
                                 <Facebook size={20} />
                             </Link>
                             <Link
@@ -88,7 +88,7 @@ const Footer = () => {
                             </Link>
                             <Link href={"https://www.youtube.com/"} target="_blank" aria-label="YouTube">
                                 <Youtube size={20} />
-                            </Link>
+                            </Link> */}
                         </div>
                     </div>
                 </div>
