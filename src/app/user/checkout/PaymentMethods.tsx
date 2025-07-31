@@ -56,12 +56,12 @@ export function PaymentMethods({ onSelect, initial = "COD" }: PaymentMethodsProp
     <div className="bg-white p-6 rounded-lg border">
       <h2 className="font-medium mb-4">Payment Method</h2>
       <RadioGroup value={selected} onValueChange={choose} className="space-y-4">
-        <div className="flex items-center space-x-3 border p-4 rounded">
+        {/* <div className="flex items-center space-x-3 border p-4 rounded">
           <RadioGroupItem value="COD" id="cod" />
-          {/* <Label htmlFor="cod" className="flex items-center">
+          <Label htmlFor="cod" className="flex items-center">
             <CreditCard className="mr-2" /> Cash on Delivery
-          </Label> */}
-        </div>
+          </Label>
+        </div> */}
         {banks.map(b => (
           <div key={b.bank_code} className="flex items-center space-x-3 border p-4 rounded">
             <RadioGroupItem value={b.bank_code} id={b.bank_code} />
