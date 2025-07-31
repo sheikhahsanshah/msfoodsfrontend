@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, Facebook, Instagram, Twitter, Youtube, ChevronDown } from "lucide-react"
+// import { ArrowRight, Facebook, Instagram, Twitter, Youtube, ChevronDown } from "lucide-react"
 
 const Footer = () => {
     return (
