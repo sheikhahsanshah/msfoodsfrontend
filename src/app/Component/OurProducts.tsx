@@ -153,7 +153,7 @@ export default function ProductGrid() {
                                 <CardContent className="p-5 flex flex-col flex-grow">
                                     <div className="text-sm text-[#1D1D1D]">
                                         {product.priceOptions.length > 1 ? "From " : ""}
-                                        {displayPrice ? `Rs. ${displayPrice.toFixed(2)}` : "Price not available"}
+                                        {displayPrice ? `Rs. ${displayPrice}` : "Price not available"}
                                     </div>
                                     <h3 className="font-semibold text-[17px] md:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
                                         {product.name}
