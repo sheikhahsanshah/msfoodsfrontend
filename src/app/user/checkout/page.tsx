@@ -47,7 +47,7 @@ export default function CheckoutPage() {
     const router = useRouter()
     const { toast } = useToast()
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [paymentMethod, setPaymentMethod] = useState<"COD" | "BankTransfer">("COD")
+    const [paymentMethod, setPaymentMethod] = useState<"COD" | "BankTransfer">("BankTransfer")
     const [couponCode, setCouponCode] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
     const [couponDiscount, setCouponDiscount] = useState(0)
@@ -570,21 +570,7 @@ export default function CheckoutPage() {
                                             id="cod"
                                             className="sr-only"
                                         />
-                                        <label
-                                            htmlFor="cod"
-                                            className="flex items-center space-x-2 w-full cursor-pointer"
-                                        >
-                                            <CreditCard
-                                                className={`h-6 w-6 ${paymentMethod === "COD" ? "text-indigo-600" : "text-gray-400"
-                                                    }`}
-                                            />
-                                            <span
-                                                className={`font-medium ${paymentMethod === "COD" ? "text-indigo-900" : "text-gray-700"
-                                                    }`}
-                                            >
-                                                Cash on Delivery
-                                            </span>
-                                        </label>
+                                    
                                     </div>
 
                                     {/* Bank Transfer Card */}
