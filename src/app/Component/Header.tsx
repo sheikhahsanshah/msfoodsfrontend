@@ -86,7 +86,7 @@ const Header = () => {
     const { user, logout } = useUser()
     const texts = [
         "Delivering In only Lahore ! ",
-        "Free shipping on orders above 2500 ",
+        "Free shipping on orders above 2000 ",
         "Shipping within a single day",
         "Exclusive Deals for Members – Sign Up Now!",
         "Hassle-Free Returns & Refunds Within 7 Days",
