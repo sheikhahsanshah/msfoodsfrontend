@@ -13,6 +13,7 @@ import { Star, Upload, X } from "lucide-react"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { formatPrice } from "@/lib/utils"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"]
@@ -188,7 +189,7 @@ export default function ReviewModal({ order, onClose }: ReviewModalProps) {
                                     <div>
                                         <h3 className="font-medium">{selectedProduct.name}</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Quantity: {selectedProduct.quantity} | Price: Rs {selectedProduct.price.toFixed(2)}
+                                            Quantity: {selectedProduct.quantity} | Price: {formatPrice(selectedProduct.price)}
                                         </p>
                                     </div>
                                 </div>

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import Image from "next/image"
 import { useRouter } from "next/navigation"  // Import useRouter
+import { formatPrice } from "@/lib/utils"
 
 
 
@@ -166,7 +167,7 @@ export default function MyOrdersPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Total Amount</p>
-                                        <p>Rs {order.totalAmount.toFixed(2)}</p>
+                                        <p>{formatPrice(order.totalAmount)}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Payment Method</p>
@@ -221,7 +222,7 @@ export default function MyOrdersPage() {
                                                         <div>
                                                             <p className="font-medium">{item.name}</p>
                                                             <p className="text-sm text-gray-500">
-                                                                Quantity: {item.quantity} | Price: Rs {item.price.toFixed(2)}
+                                                                Quantity: {item.quantity} | Price: {formatPrice(item.price)}
                                                             </p>
                                                         </div>
                                                     </div>

@@ -30,6 +30,8 @@ interface OrderItem {
         weight?: number
         price: number
         salePrice?: number
+        originalPrice?: number
+        globalSalePercentage?: number
     }
     _id: string
     id: string
@@ -326,7 +328,9 @@ export default function Orders() {
             item.name,
             item.priceOption.type === "weight-based" ? `Weight (${item.priceOption.weight}g)` : "Packet",
             item.quantity.toString(),
-            `Rs ${item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}`,
+            item.priceOption?.originalPrice && item.priceOption.originalPrice > item.priceOption.price 
+                ? `Rs ${item.priceOption.originalPrice.toFixed(2)} → Rs ${item.priceOption.price.toFixed(2)}`
+                : `Rs ${item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}`,
             `Rs ${item.priceOption?.price ? (item.quantity * item.priceOption.price).toFixed(2) : "0.00"}`,
         ])
 
@@ -754,7 +758,23 @@ export default function Orders() {
                                                                                         </TableCell>
                                                                                         <TableCell>{item.quantity}</TableCell>
                                                                                         <TableCell>
-                                                                                            Rs {item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}
+                                                                                            {item.priceOption?.originalPrice && item.priceOption.originalPrice > item.priceOption.price ? (
+                                                                                                <div className="space-y-1">
+                                                                                                    <div className="text-sm text-gray-500 line-through">
+                                                                                                        Rs {item.priceOption.originalPrice.toFixed(2)}
+                                                                                                    </div>
+                                                                                                    <div className="font-medium text-green-600">
+                                                                                                        Rs {item.priceOption.price.toFixed(2)}
+                                                                                                    </div>
+                                                                                                    {item.priceOption.globalSalePercentage && (
+                                                                                                        <Badge variant="secondary" className="text-xs">
+                                                                                                            {item.priceOption.globalSalePercentage}% OFF
+                                                                                                        </Badge>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            ) : (
+                                                                                                <span>Rs {item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}</span>
+                                                                                            )}
                                                                                         </TableCell>
                                                                                         <TableCell>
                                                                                             Rs{" "}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { X, Filter, Check, Tag, Package, Clock, ArrowUpDown } from "lucide-react"
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { formatPrice } from "@/lib/utils"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com"
 
@@ -16,6 +17,9 @@ interface PriceOption {
     weight: number
     price: number
     salePrice?: number | null
+    calculatedSalePrice?: number | null
+    originalPrice?: number | null
+    globalSalePercentage?: number | null
 }
 
 interface Category {
@@ -30,11 +34,14 @@ interface Product {
     _id: string
     name: string
     priceOptions: PriceOption[]
+    calculatedPriceOptions?: PriceOption[]
     images: { public_id: string; url: string }[]
     slug: string
     stock: number
     categories: string[] | Category[] // Accept both string IDs and full category objects
     createdAt: string
+    sale?: number | null
+    hasActiveSales?: boolean; // Added for backend sales indicator
 }
 
 type SortOption =
@@ -766,12 +773,57 @@ export default function CategoryProducts() {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                     {filteredProducts.map((product) => {
-                        const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price)
+                        // Use calculated price options from backend if available
+                        const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions
+                        const sortedPrices = priceOptionsToUse.sort((a, b) => a.price - b.price)
                         const lowestPriceOption = sortedPrices[0]
-                        const displayPrice = lowestPriceOption?.salePrice || lowestPriceOption?.price
-                        const isOnSale = product.priceOptions.some(
-                            (option) => option.salePrice !== null && option.salePrice !== undefined,
-                        )
+
+                        // Get the best available price (calculated sale price > individual sale price > original price)
+                        const displayPrice = lowestPriceOption?.calculatedSalePrice || lowestPriceOption?.salePrice || lowestPriceOption?.price
+
+                        // Check if product is on sale (global sale or individual sale prices)
+                        const isOnSale = (() => {
+                            // First check if backend indicates active sales
+                            if (product.hasActiveSales) {
+                                return true;
+                            }
+
+                            // Check for meaningful global sale
+                            if (product.sale && product.sale > 0) {
+                                // Verify that the global sale actually results in a meaningful discount
+                                const hasMeaningfulGlobalSale = priceOptionsToUse.some(option => {
+                                    if (!option.price || option.price <= 0) return false;
+
+                                    // Skip if individual sale price exists
+                                    if (option.salePrice !== null && option.salePrice !== undefined) return false;
+
+                                    const discountMultiplier = (100 - product.sale) / 100;
+                                    const calculatedSalePrice = Math.round(option.price * discountMultiplier * 100) / 100;
+                                    const actualDiscount = option.price - calculatedSalePrice;
+                                    const discountPercentage = (actualDiscount / option.price) * 100;
+
+                                    return discountPercentage >= 1; // At least 1% discount
+                                });
+
+                                if (hasMeaningfulGlobalSale) {
+                                    return true;
+                                }
+                            }
+
+                            // Check for individual sale prices that are actually discounts
+                            const hasIndividualSale = priceOptionsToUse.some(option =>
+                                option.salePrice !== null &&
+                                option.salePrice !== undefined &&
+                                option.salePrice > 0 &&
+                                option.salePrice < option.price // Ensure it's actually a discount
+                            );
+
+                            if (hasIndividualSale) {
+                                return true;
+                            }
+
+                            return false;
+                        })();
 
                         return (
                             <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
@@ -797,20 +849,59 @@ export default function CategoryProducts() {
                                     <CardContent className="p-3 md:p-5 flex flex-col flex-grow">
                                         <div className="text-sm text-[#1D1D1D]">
                                             {product.priceOptions.length > 1 ? "From " : ""}
-                                            {lowestPriceOption?.salePrice ? (
-                                                <span>
-                                                    <span className="line-through text-gray-500 mr-2">
-                                                        Rs. {lowestPriceOption.price.toFixed(2)}
-                                                    </span>
-                                                    <span className="text-red-500">
-                                                        Rs. {lowestPriceOption.salePrice.toFixed(2)}
-                                                    </span>
-                                                </span>
-                                            ) : displayPrice ? (
-                                                `Rs. ${displayPrice.toFixed(2)}`
-                                            ) : (
-                                                "Price not available"
-                                            )}
+                                            {(() => {
+                                                // If product is on sale, show both original and sale prices
+                                                if (isOnSale) {
+                                                    // Check for calculated sale price from backend
+                                                    if (lowestPriceOption?.calculatedSalePrice && lowestPriceOption?.calculatedSalePrice < lowestPriceOption?.price) {
+                                                        return (
+                                                            <span>
+                                                                <span className="line-through text-gray-500 mr-2">
+                                                                    {formatPrice(lowestPriceOption.originalPrice || lowestPriceOption.price)}
+                                                                </span>
+                                                                <span className="text-red-500">
+                                                                    {formatPrice(lowestPriceOption.calculatedSalePrice)}
+                                                                </span>
+                                                            </span>
+                                                        );
+                                                    }
+                                                    // Check for individual sale price
+                                                    else if (lowestPriceOption?.salePrice && lowestPriceOption?.salePrice < lowestPriceOption?.price) {
+                                                        return (
+                                                            <span>
+                                                                <span className="line-through text-gray-500 mr-2">
+                                                                    {formatPrice(lowestPriceOption.price)}
+                                                                </span>
+                                                                <span className="text-red-500">
+                                                                    {formatPrice(lowestPriceOption.salePrice)}
+                                                                </span>
+                                                            </span>
+                                                        );
+                                                    }
+                                                    // Check for global sale calculation
+                                                    else if (product.sale && product.sale > 0) {
+                                                        const originalPrice = lowestPriceOption?.price || 0;
+                                                        const discountMultiplier = (100 - product.sale) / 100;
+                                                        const calculatedSalePrice = Math.round(originalPrice * discountMultiplier * 100) / 100;
+
+                                                        if (calculatedSalePrice < originalPrice) {
+                                                            return (
+                                                                <span>
+                                                                    <span className="line-through text-gray-500 mr-2">
+                                                                        {formatPrice(originalPrice)}
+                                                                    </span>
+                                                                    <span className="text-red-500">
+                                                                        {formatPrice(calculatedSalePrice)}
+                                                                    </span>
+                                                                </span>
+                                                            );
+                                                        }
+                                                    }
+                                                }
+
+                                                // If no sale or fallback, show regular price
+                                                return formatPrice(displayPrice);
+                                            })()}
                                         </div>
 
                                         <h3 className="font-semibold text-[15px] md:text-[17px] lg:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">

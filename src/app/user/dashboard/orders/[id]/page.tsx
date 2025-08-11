@@ -39,6 +39,9 @@ interface OrderItem {
         weight: number
         price: number
         salePrice?: number | null
+        calculatedSalePrice?: number
+        originalPrice?: number
+        globalSalePercentage?: number | null
     }
     quantity: number
     image: string
@@ -397,8 +400,22 @@ export default function OrderDetailsPage() {
                                 (!order.couponUsed.eligibleProducts?.length && order.discount > 0)
                             )
 
-                            const originalPrice = item.priceOption.price
-                            let finalPrice = item.priceOption.salePrice || originalPrice
+                            // Determine the correct prices for display
+                            const originalPrice = item.priceOption.originalPrice || item.priceOption.price
+                            let finalPrice = item.priceOption.price
+                            let salePercentage = 0
+
+                            // Check for calculated sale price from backend
+                            if (item.priceOption.calculatedSalePrice && item.priceOption.calculatedSalePrice < item.priceOption.price) {
+                                finalPrice = item.priceOption.calculatedSalePrice
+                                salePercentage = Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+                            }
+                            // Check for individual sale price
+                            else if (item.priceOption.salePrice && item.priceOption.salePrice < item.priceOption.price) {
+                                finalPrice = item.priceOption.salePrice
+                                salePercentage = Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+                            }
+
                             let itemTotal = finalPrice * item.quantity
 
                             if (isDiscounted && order.couponUsed) {
@@ -427,7 +444,15 @@ export default function OrderDetailsPage() {
                                             Qty: {item.quantity} · {item.priceOption.type === "packet" ? "Packet" : `${item.priceOption.weight}g`}
                                         </p>
                                         <div className="flex items-center gap-2 mt-1">
-                                            {isDiscounted && order.couponUsed?.discountType === 'percentage' ? (
+                                            {salePercentage > 0 ? (
+                                                <>
+                                                    <p className="text-sm text-red-600 font-medium">Rs. {finalPrice.toFixed(2)}</p>
+                                                    <p className="text-sm text-gray-400 line-through">Rs. {originalPrice.toFixed(2)}</p>
+                                                    <Badge variant="secondary" className="text-xs text-green-600 border-green-200">
+                                                        {salePercentage}% OFF
+                                                    </Badge>
+                                                </>
+                                            ) : isDiscounted && order.couponUsed?.discountType === 'percentage' ? (
                                                 <>
                                                     <p className="text-sm text-red-600 font-medium">Rs. {finalPrice.toFixed(2)}</p>
                                                     <p className="text-sm text-gray-400 line-through">Rs. {originalPrice.toFixed(2)}</p>

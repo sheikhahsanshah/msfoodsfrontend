@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useDebounce } from "@/hooks/useDebounce"
 import { useCart } from "@/app/Component/CartContext"
 import { useRef } from "react"
+import { formatPrice } from "@/lib/utils"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
 
@@ -477,14 +478,14 @@ function ProductCard({ product, viewMode, handleAddToCart }: ProductCardProps) {
                 <p className={`text-sm text-gray-500 ${viewMode === "list" ? "" : "line-clamp-2"}`}>{product.description}</p>
                 {viewMode === "list" && (
                     <div className="mt-4">
-                        <span className="text-lg font-semibold">Rs {product.price.toFixed(2)}</span>
+                        <span className="text-lg font-semibold">{formatPrice(product.price)}</span>
                     </div>
                 )}
             </CardContent>
             <CardFooter
                 className={`p-4 ${viewMode === "list" ? "flex-col items-start" : "flex flex-col  justify-between items-center"}`}
             >
-                {viewMode === "grid" && <span className="text-lg font-semibold ">Rs {product.price.toFixed(2)}</span>}
+                                    {viewMode === "grid" && <span className="text-lg font-semibold ">{formatPrice(product.price)}</span>}
                 {product.stock > 0 ? (
                     <Button
                         variant="default"

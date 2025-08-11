@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/components/ui/use-toast"
 import { useUser } from "../../Component/user-context"
 import Cookies from "js-cookie"
+import { formatPrice } from "@/lib/utils"
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
@@ -249,7 +250,7 @@ export default function ProfilePage() {
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500">Total Spent</p>
-                                            <p className="text-2xl font-bold">Rs. {userDetails.totalSpent?.toFixed(2) || "0.00"}</p>
+                                            <p className="text-2xl font-bold">{formatPrice(userDetails.totalSpent) || "Rs. 0"}</p>
                                         </div>
                                     </div>
                                 </div>

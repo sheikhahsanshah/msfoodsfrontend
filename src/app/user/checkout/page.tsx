@@ -42,7 +42,7 @@ const API_URL =
     "https://msfoodsbackend.vercel.app";
 
 export default function CheckoutPage() {
-    const { cart, getTotalPrice, clearCart } = useCart()
+    const { cart, getTotalPrice, getTotalSavings, getOriginalTotalPrice, clearCart } = useCart()
     const { user, isAuthenticated } = useUser()
     const router = useRouter()
     const { toast } = useToast()
@@ -93,6 +93,8 @@ export default function CheckoutPage() {
     }, [paymentMethod]);
     // Calculate order summary
     const subtotal = getTotalPrice()
+    const saleSavings = getTotalSavings()
+    const originalSubtotal = getOriginalTotalPrice()
     const discount = couponApplied ? couponDiscount : 0
     // shippingCost is now derived
     // const codFee = paymentMethod === 'COD' ? 100 : 0;
@@ -464,6 +466,8 @@ export default function CheckoutPage() {
                         isAuthenticated={isAuthenticated}
                         eligibleItems={eligibleItems}
                         eligibleSubtotal={eligibleSubtotal}
+                        saleSavings={saleSavings}
+                        originalSubtotal={originalSubtotal}
                     />
                 </div>
 
@@ -570,7 +574,7 @@ export default function CheckoutPage() {
                                             id="cod"
                                             className="sr-only"
                                         />
-                                    
+
                                     </div>
 
                                     {/* Bank Transfer Card */}
@@ -757,6 +761,8 @@ export default function CheckoutPage() {
                                 isAuthenticated={isAuthenticated}
                                 eligibleItems={eligibleItems}
                                 eligibleSubtotal={eligibleSubtotal}
+                                saleSavings={saleSavings}
+                                originalSubtotal={originalSubtotal}
                             />
 
                             <Button
@@ -791,6 +797,8 @@ interface CartItem {
     priceOptionId: string | number;
     name: string;
     price: number;
+    originalPrice?: number;
+    salePercentage?: number;
     quantity: number;
     image?: string;
     weightType?: string;
@@ -824,6 +832,8 @@ interface OrderSummaryProps {
     isAuthenticated: boolean
     eligibleItems?: EligibleItem[]
     eligibleSubtotal?: number
+    saleSavings: number
+    originalSubtotal: number
 }
 
 function OrderSummaryCollapsible({
@@ -844,6 +854,8 @@ function OrderSummaryCollapsible({
     isAuthenticated,
     eligibleItems,
     eligibleSubtotal,
+    saleSavings,
+    originalSubtotal,
 }: OrderSummaryProps) {
     return (
         <div className="bg-gray-50 rounded-lg border border-gray-200">
@@ -891,7 +903,15 @@ function OrderSummaryCollapsible({
                                             <h3 className="text-sm font-medium text-gray-900 truncate">{item.name}</h3>
                                             {item.weightType === "weight-based" && <p className="text-xs text-gray-500">{item.weight}g</p>}
                                             <p className="text-sm text-gray-900 mt-1">
-                                                Rs.{item.price.toLocaleString()} × {item.quantity}
+                                                {item.originalPrice && item.originalPrice > item.price ? (
+                                                    <>
+                                                        <span className="text-red-600 font-medium">Rs.{item.price.toLocaleString()}</span>
+                                                        <span className="text-gray-500 line-through ml-2">Rs.{item.originalPrice.toLocaleString()}</span>
+                                                        <span className="text-xs text-green-600 ml-2">({item.salePercentage}% off)</span>
+                                                    </>
+                                                ) : (
+                                                    <span>Rs.{item.price.toLocaleString()}</span>
+                                                )} × {item.quantity}
                                             </p>
                                             {couponApplied && isEligible && (
                                                 <p className="text-xs text-green-600 mt-1">
@@ -949,10 +969,22 @@ function OrderSummaryCollapsible({
                         </div>
 
                         <div className="space-y-4">
+                            {saleSavings > 0 && (
+                                <div className="flex justify-between">
+                                    <p className="text-sm text-gray-600">Original Subtotal</p>
+                                    <p className="text-sm text-gray-500 line-through">Rs.{originalSubtotal.toLocaleString()}</p>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <p className="text-sm text-gray-600">Subtotal</p>
                                 <p className="text-sm font-medium text-gray-900">Rs.{subtotal.toLocaleString()}</p>
                             </div>
+                            {saleSavings > 0 && (
+                                <div className="flex justify-between">
+                                    <p className="text-sm text-gray-600">Sale Savings</p>
+                                    <p className="text-sm font-medium text-green-600">-Rs.{saleSavings.toLocaleString()}</p>
+                                </div>
+                            )}
 
                             <div className="flex justify-between">
                                 <p className="text-sm text-gray-600">Shipping</p>

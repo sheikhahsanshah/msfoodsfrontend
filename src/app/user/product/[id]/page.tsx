@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Tag } from "lucide-react"
+import { formatPrice } from "@/lib/utils"
 // import Header from "@/app/Component/Header"
 // import Footer from "@/app/Component/Footer"
 
@@ -25,6 +26,9 @@ interface PriceOption {
     weight: number
     price: number
     salePrice: number | null
+    calculatedSalePrice?: number
+    originalPrice?: number
+    globalSalePercentage?: number | null
     _id: string
 }
 
@@ -40,6 +44,9 @@ interface Product {
     slug: string
     priceOptions: PriceOption[]
     sale: number | null
+    calculatedPriceOptions?: PriceOption[]
+    hasActiveSales?: boolean
+    lowestPrice?: number
 }
 
 interface Review {
@@ -210,12 +217,39 @@ export default function ProductDetail() {
             return
         }
 
-        const price = selectedPriceOption.salePrice || selectedPriceOption.price
+        // Determine the correct price to use (sale price takes priority)
+        let price = selectedPriceOption.price
+
+        if (selectedPriceOption.calculatedSalePrice && selectedPriceOption.calculatedSalePrice < selectedPriceOption.price) {
+            price = selectedPriceOption.calculatedSalePrice
+        } else if (selectedPriceOption.salePrice && selectedPriceOption.salePrice < selectedPriceOption.price) {
+            price = selectedPriceOption.salePrice
+        } else if (product.sale && product.sale > 0) {
+            const discountMultiplier = (100 - product.sale) / 100
+            price = Math.round(selectedPriceOption.price * discountMultiplier * 100) / 100
+        }
+
+        // Calculate original price and sale percentage
+        let originalPrice = selectedPriceOption.price
+        let salePercentage = 0
+
+        if (selectedPriceOption.calculatedSalePrice && selectedPriceOption.calculatedSalePrice < selectedPriceOption.price) {
+            originalPrice = selectedPriceOption.originalPrice || selectedPriceOption.price
+            salePercentage = Math.round(((originalPrice - selectedPriceOption.calculatedSalePrice) / originalPrice) * 100)
+        } else if (selectedPriceOption.salePrice && selectedPriceOption.salePrice < selectedPriceOption.price) {
+            originalPrice = selectedPriceOption.price
+            salePercentage = Math.round(((originalPrice - selectedPriceOption.salePrice) / originalPrice) * 100)
+        } else if (product.sale && product.sale > 0) {
+            originalPrice = selectedPriceOption.price
+            salePercentage = product.sale
+        }
 
         addToCart({
             id: product._id,
             name: product.name,
             price: price,
+            originalPrice: originalPrice,
+            salePercentage: salePercentage,
             quantity: quantity,
             image: product.images[0]?.url || "",
             stock: product.stock,
@@ -451,21 +485,67 @@ export default function ProductDetail() {
                             <div className="mt-4">
                                 {selectedPriceOption && (
                                     <div className="flex items-baseline">
-                                        {selectedPriceOption.salePrice ? (
-                                            <>
-                                                <p className="text-3xl font-bold text-gray-900">
-                                                    Rs.{selectedPriceOption.salePrice.toLocaleString()}
-                                                </p>
-                                                <p className="ml-2 text-lg text-gray-500 line-through">
-                                                    Rs.{selectedPriceOption.price.toLocaleString()}
-                                                </p>
-                                                <span className="ml-2 px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">
-                                                    Sale
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <p className="text-3xl font-bold text-gray-900">Rs.{selectedPriceOption.price.toLocaleString()}</p>
-                                        )}
+                                        {(() => {
+                                            // Check for calculated sale price from backend
+                                            if (selectedPriceOption.calculatedSalePrice && selectedPriceOption.calculatedSalePrice < selectedPriceOption.price) {
+                                                return (
+                                                    <>
+                                                        <p className="text-3xl font-bold text-red-600">
+                                                            {formatPrice(selectedPriceOption.calculatedSalePrice)}
+                                                        </p>
+                                                        <p className="ml-2 text-lg text-gray-500 line-through">
+                                                            {formatPrice(selectedPriceOption.originalPrice || selectedPriceOption.price)}
+                                                        </p>
+                                                        <span className="ml-2 px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">
+                                                            {selectedPriceOption.globalSalePercentage ? `${selectedPriceOption.globalSalePercentage}% OFF` : 'Sale'}
+                                                        </span>
+                                                    </>
+                                                )
+                                            }
+                                            // Check for individual sale price
+                                            else if (selectedPriceOption.salePrice && selectedPriceOption.salePrice < selectedPriceOption.price) {
+                                                return (
+                                                    <>
+                                                        <p className="text-3xl font-bold text-red-600">
+                                                            {formatPrice(selectedPriceOption.salePrice)}
+                                                        </p>
+                                                        <p className="ml-2 text-lg text-gray-500 line-through">
+                                                            {formatPrice(selectedPriceOption.price)}
+                                                        </p>
+                                                        <span className="ml-2 px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">
+                                                            Sale
+                                                        </span>
+                                                    </>
+                                                )
+                                            }
+                                            // Check for global sale calculation
+                                            else if (product.sale && product.sale > 0) {
+                                                const originalPrice = selectedPriceOption.price || 0
+                                                const discountMultiplier = (100 - product.sale) / 100
+                                                const calculatedSalePrice = Math.round(originalPrice * discountMultiplier * 100) / 100
+
+                                                if (calculatedSalePrice < originalPrice) {
+                                                    return (
+                                                        <>
+                                                            <p className="text-3xl font-bold text-red-600">
+                                                                {formatPrice(calculatedSalePrice)}
+                                                            </p>
+                                                            <p className="ml-2 text-lg text-gray-500 line-through">
+                                                                {formatPrice(originalPrice)}
+                                                            </p>
+                                                            <span className="ml-2 px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">
+                                                                {product.sale}% OFF
+                                                            </span>
+                                                        </>
+                                                    )
+                                                }
+                                            }
+
+                                            // Default: no sale
+                                            return (
+                                                <p className="text-3xl font-bold text-gray-900">{formatPrice(selectedPriceOption.price)}</p>
+                                            )
+                                        })()}
                                     </div>
                                 )}
                                 <p className="mt-1 text-sm text-gray-500">
@@ -527,7 +607,28 @@ export default function ProductDetail() {
                                             >
                                                 {selectedPriceType === "weight-based"
                                                     ? `${option.weight}g`
-                                                    : `Rs.${(option.salePrice || option.price).toLocaleString()}`}
+                                                    : (() => {
+                                                        // Check for calculated sale price
+                                                        if (option.calculatedSalePrice && option.calculatedSalePrice < option.price) {
+                                                            return (
+                                                                <div className="text-center">
+                                                                    <div className="text-red-600 font-semibold">{formatPrice(option.calculatedSalePrice)}</div>
+                                                                    <div className="text-xs text-gray-500 line-through">{formatPrice(option.originalPrice || option.price)}</div>
+                                                                </div>
+                                                            )
+                                                        }
+                                                        // Check for individual sale price
+                                                        else if (option.salePrice && option.salePrice < option.price) {
+                                                            return (
+                                                                <div className="text-center">
+                                                                    <div className="text-red-600 font-semibold">{formatPrice(option.salePrice)}</div>
+                                                                    <div className="text-xs text-gray-500 line-through">{formatPrice(option.price)}</div>
+                                                                </div>
+                                                            )
+                                                        }
+                                                        // Default price
+                                                        return formatPrice(option.price)
+                                                    })()}
                                             </button>
                                         ))}
                                     </div>
@@ -874,9 +975,9 @@ export default function ProductDetail() {
                                                 fill
                                                 className="  group-hover:scale-105 transition-transform duration-300"
                                             />
-                                            {product.sale && (
-                                                <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">
-                                                    SALE
+                                            {(product.sale || product.hasActiveSales) && (
+                                                <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                                                    {product.sale ? `${product.sale}% OFF` : 'SALE'}
                                                 </div>
                                             )}
 
@@ -912,16 +1013,33 @@ export default function ProductDetail() {
 
                                             {product.priceOptions && product.priceOptions.length > 0 && (
                                                 <p className="mt-1 text-sm font-medium text-gray-900">
-                                                    {product.priceOptions[0].salePrice ? (
-                                                        <>
-                                                            <span>Rs.{product.priceOptions[0].salePrice.toLocaleString()}</span>
-                                                            <span className="ml-2 text-gray-500 line-through text-xs">
-                                                                Rs.{product.priceOptions[0].price.toLocaleString()}
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <span>Rs.{product.priceOptions[0].price.toLocaleString()}</span>
-                                                    )}
+                                                    {(() => {
+                                                        const option = product.priceOptions[0]
+                                                        // Check for calculated sale price
+                                                        if (option.calculatedSalePrice && option.calculatedSalePrice < option.price) {
+                                                            return (
+                                                                <>
+                                                                    <span className="text-red-600">Rs.{option.calculatedSalePrice.toLocaleString()}</span>
+                                                                    <span className="ml-2 text-gray-500 line-through text-xs">
+                                                                        Rs.{(option.originalPrice || option.price).toLocaleString()}
+                                                                    </span>
+                                                                </>
+                                                            )
+                                                        }
+                                                        // Check for individual sale price
+                                                        else if (option.salePrice && option.salePrice < option.price) {
+                                                            return (
+                                                                <>
+                                                                    <span className="text-red-600">Rs.{option.salePrice.toLocaleString()}</span>
+                                                                    <span className="ml-2 text-gray-500 line-through text-xs">
+                                                                        Rs.{option.price.toLocaleString()}
+                                                                    </span>
+                                                                </>
+                                                            )
+                                                        }
+                                                        // Default price
+                                                        return <span>Rs.{option.price.toLocaleString()}</span>
+                                                    })()}
                                                 </p>
                                             )}
                                         </div>

@@ -8,6 +8,8 @@ export interface CartItem {
     id: string
     name: string
     price: number
+    originalPrice?: number
+    salePercentage?: number
     quantity: number
     image: string
     stock: number
@@ -24,6 +26,8 @@ interface CartContextType {
     clearCart: () => void
     getTotalItems: () => number
     getTotalPrice: () => number
+    getTotalSavings: () => number
+    getOriginalTotalPrice: () => number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -124,6 +128,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
     }
 
+    const getTotalSavings = () => {
+        return cart.reduce((total, item) => {
+            if (item.originalPrice && item.originalPrice > item.price) {
+                return total + ((item.originalPrice - item.price) * item.quantity)
+            }
+            return total
+        }, 0)
+    }
+
+    const getOriginalTotalPrice = () => {
+        return cart.reduce((total, item) => total + (item.originalPrice || item.price) * item.quantity, 0)
+    }
+
     return (
         <CartContext.Provider
             value={{
@@ -133,7 +150,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 updateQuantity,
                 clearCart,
                 getTotalItems,
-                getTotalPrice
+                getTotalPrice,
+                getTotalSavings,
+                getOriginalTotalPrice
             }}
         >
             {children}

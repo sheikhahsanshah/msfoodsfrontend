@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useUser } from "../../../Component/user-context"
 import Cookies from "js-cookie"
 import Image from "next/image"
+import { formatPrice } from "@/lib/utils"
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
@@ -360,7 +361,7 @@ export default function OrderHistoryPage() {
                                     <div className="flex items-center gap-4 mt-3 sm:mt-0">
                                         <div className="text-right">
                                             <div className="text-sm text-gray-500">Total Amount</div>
-                                            <div className="font-medium">Rs. {order.totalAmount.toFixed(2)}</div>
+                                            <div className="font-medium">{formatPrice(order.totalAmount)}</div>
                                         </div>
                                     </div>
                                 </div>

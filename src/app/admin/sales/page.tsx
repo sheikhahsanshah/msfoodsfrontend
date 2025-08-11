@@ -16,6 +16,8 @@ interface SalesStats {
     totalCodFee: number
     totalRevenue: number
     totalProfit: number
+    totalSaleDiscounts?: number
+    totalCouponDiscounts?: number
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
@@ -83,7 +85,13 @@ export default function Sales() {
         { name: "Gross Sales", value: salesStats?.totalSales || 0, fill: "#82ca9d" },
         { name: "Shipping Fees", value: salesStats?.totalShipping || 0, fill: "#8884d8" },
         { name: "COD Fees", value: salesStats?.totalCodFee || 0, fill: "#ff7300" },
-        { name: "Discounts Given", value: salesStats?.totalDiscount || 0, fill: "#ffc658" },
+        { name: "Total Discounts", value: salesStats?.totalDiscount || 0, fill: "#ffc658" },
+    ]
+
+    // Separate chart for discount breakdown if we have the data
+    const discountChartData = [
+        { name: "Coupon Discounts", value: (salesStats?.totalDiscount || 0) - (salesStats?.totalSaleDiscounts || 0), fill: "#ff6b6b" },
+        { name: "Sale Discounts", value: salesStats?.totalSaleDiscounts || 0, fill: "#4ecdc4" },
     ]
 
     if (isLoading) {
@@ -182,7 +190,17 @@ export default function Sales() {
                     <CardContent className="text-sm">
                         <div className="flex justify-between"><span>Shipping Fees:</span> <span>Rs {salesStats?.totalShipping.toFixed(2) || "0.00"}</span></div>
                         <div className="flex justify-between"><span>COD Fees:</span> <span>Rs {salesStats?.totalCodFee.toFixed(2) || "0.00"}</span></div>
-                        <div className="flex justify-between"><span>Discounts Given:</span> <span className="text-red-500">-Rs {salesStats?.totalDiscount.toFixed(2) || "0.00"}</span></div>
+                        <div className="flex justify-between"><span>Total Discounts:</span> <span className="text-red-500">-Rs {salesStats?.totalDiscount.toFixed(2) || "0.00"}</span></div>
+                        {salesStats?.totalSaleDiscounts && salesStats.totalSaleDiscounts > 0 && (
+                            <div className="flex justify-between text-xs text-gray-600 pl-2">
+                                <span>• Sale Discounts:</span> <span className="text-red-500">-Rs {salesStats.totalSaleDiscounts.toFixed(2)}</span>
+                            </div>
+                        )}
+                        {((salesStats?.totalDiscount || 0) - (salesStats?.totalSaleDiscounts || 0)) > 0 && (
+                            <div className="flex justify-between text-xs text-gray-600 pl-2">
+                                <span>• Coupon Discounts:</span> <span className="text-red-500">-Rs {((salesStats?.totalDiscount || 0) - (salesStats?.totalSaleDiscounts || 0)).toFixed(2)}</span>
+                            </div>
+                        )}
                         <div className="flex justify-between"><span>Coupons Used:</span> <span>{salesStats?.couponsUsed || 0}</span></div>
                     </CardContent>
                 </Card>
@@ -208,6 +226,31 @@ export default function Sales() {
                     </ResponsiveContainer>
                 </CardContent>
             </Card>
+
+            {/* Discount Breakdown Chart */}
+            {(salesStats?.totalSaleDiscounts || 0) > 0 && (
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle>Discount Breakdown</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={discountChartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="name" />
+                                <YAxis />
+                                <Tooltip formatter={(value: number) => `Rs ${value.toFixed(2)}`} />
+                                <Legend />
+                                <Bar dataKey="value" name="Discount Amount (Rs)">
+                                    {discountChartData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     )
 }

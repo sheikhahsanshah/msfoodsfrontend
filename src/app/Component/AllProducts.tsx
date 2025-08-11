@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 // import { toast } from "@/components/ui/use-toast"
 import { X, Filter, Check, Tag, Package, Clock, ArrowUpDown } from "lucide-react"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { formatPrice } from "@/lib/utils"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.peachflask.com"
 
@@ -15,6 +16,9 @@ interface PriceOption {
     weight: number
     price: number
     salePrice?: number | null
+    calculatedSalePrice?: number | null
+    originalPrice?: number | null
+    globalSalePercentage?: number | null
 }
 
 interface Category {
@@ -29,11 +33,14 @@ interface Product {
     _id: string
     name: string
     priceOptions: PriceOption[]
+    calculatedPriceOptions?: PriceOption[]
     images: { public_id: string; url: string }[]
     slug: string
     stock: number
     categories: string[] | Category[] // Accept both string IDs and full category objects
     createdAt: string
+    sale?: number | null
+    hasActiveSales?: boolean; // Added for backend sales indicator
 }
 
 type SortOption =
@@ -144,6 +151,7 @@ export default function AllProducts() {
                 throw new Error(data.message || "Failed to fetch products")
             }
 
+            console.log('🔍 Received products from API:', data.data.products);
             setProducts(data.data.products)
         } catch (error) {
             console.error("Error fetching products:", error)
@@ -209,7 +217,22 @@ export default function AllProducts() {
         // Filter by on sale
         if (filters.onSale) {
             result = result.filter((product) => {
-                return product.priceOptions.some((option) => option.salePrice !== null && option.salePrice !== undefined)
+                // Check for global sale percentage
+                if (product.sale && product.sale > 0) return true
+
+                // Check for individual price option sales
+                if (product.priceOptions && product.priceOptions.length > 0) {
+                    return product.priceOptions.some((option) => option.salePrice !== null && option.salePrice !== undefined)
+                }
+
+                // Check for calculated sale prices from backend
+                if (product.calculatedPriceOptions && product.calculatedPriceOptions.length > 0) {
+                    return product.calculatedPriceOptions.some((option) =>
+                        option.calculatedSalePrice !== null && option.calculatedSalePrice !== undefined
+                    )
+                }
+
+                return false
             })
         }
 
@@ -267,8 +290,17 @@ export default function AllProducts() {
 
     const getLowestPrice = (product: Product) => {
         if (!product.priceOptions || product.priceOptions.length === 0) return 0
-        const sortedPrices = [...product.priceOptions].sort((a, b) => a.price - b.price)
-        return sortedPrices[0].salePrice || sortedPrices[0].price
+
+        // Use calculated price options from backend if available
+        const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions
+
+        const sortedPrices = [...priceOptionsToUse].sort((a, b) => {
+            const aPrice = a.calculatedSalePrice || a.salePrice || a.price
+            const bPrice = b.calculatedSalePrice || b.salePrice || b.price
+            return aPrice - bPrice
+        })
+
+        return sortedPrices[0].calculatedSalePrice || sortedPrices[0].salePrice || sortedPrices[0].price
     }
 
     const handleAvailabilityChange = (key: "inStock" | "outOfStock") => {
@@ -728,17 +760,68 @@ export default function AllProducts() {
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {filteredProducts.slice(0, visibleCount).map((product) => {
-                            // move consts out of JSX
-                            // const bgColor =
-                            //     bgColors[
-                            //     Math.floor(Math.random() * bgColors.length)
-                            //     ];
-                            const sortedPrices = product.priceOptions.sort((a, b) => a.price - b.price)
+                            // Use calculated price options from backend if available
+                            const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions
+                            const sortedPrices = priceOptionsToUse.sort((a, b) => a.price - b.price)
                             const lowestPriceOption = sortedPrices[0]
-                            const displayPrice = lowestPriceOption?.salePrice ?? lowestPriceOption?.price
-                            const isOnSale = product.priceOptions.some(
-                                (option) => option.salePrice != null
-                            )
+
+                            // Get the best available price (calculated sale price > individual sale price > original price)
+                            const displayPrice = lowestPriceOption?.calculatedSalePrice || lowestPriceOption?.salePrice || lowestPriceOption?.price
+
+                            // Check if product is on sale (global sale or individual sale prices)
+                            const isOnSale = (() => {
+                                console.log(`🔍 Checking if product "${product.name}" is on sale:`, {
+                                    hasActiveSales: product.hasActiveSales,
+                                    sale: product.sale,
+                                    priceOptionsToUse: priceOptionsToUse,
+                                    calculatedPriceOptions: product.calculatedPriceOptions
+                                });
+
+                                // First check if backend indicates active sales
+                                if (product.hasActiveSales) {
+                                    console.log(`✅ Product "${product.name}" has active sales (backend flag)`);
+                                    return true;
+                                }
+
+                                // Check for meaningful global sale
+                                if (product.sale && product.sale > 0) {
+                                    // Verify that the global sale actually results in a meaningful discount
+                                    const hasMeaningfulGlobalSale = priceOptionsToUse.some(option => {
+                                        if (!option.price || option.price <= 0) return false;
+
+                                        // Skip if individual sale price exists
+                                        if (option.salePrice !== null && option.salePrice !== undefined) return false;
+
+                                        const discountMultiplier = (100 - product.sale) / 100;
+                                        const calculatedSalePrice = Math.round(option.price * discountMultiplier * 100) / 100;
+                                        const actualDiscount = option.price - calculatedSalePrice;
+                                        const discountPercentage = (actualDiscount / option.price) * 100;
+
+                                        return discountPercentage >= 1; // At least 1% discount
+                                    });
+
+                                    if (hasMeaningfulGlobalSale) {
+                                        console.log(`✅ Product "${product.name}" has meaningful global sale`);
+                                        return true;
+                                    }
+                                }
+
+                                // Check for individual sale prices that are actually discounts
+                                const hasIndividualSale = priceOptionsToUse.some(option =>
+                                    option.salePrice !== null &&
+                                    option.salePrice !== undefined &&
+                                    option.salePrice > 0 &&
+                                    option.salePrice < option.price // Ensure it's actually a discount
+                                );
+
+                                if (hasIndividualSale) {
+                                    console.log(`✅ Product "${product.name}" has individual sale prices`);
+                                    return true;
+                                }
+
+                                console.log(`❌ Product "${product.name}" is not on sale`);
+                                return false;
+                            })();
 
                             return (
                                 <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
@@ -763,18 +846,73 @@ export default function AllProducts() {
                                         <CardContent className="p-3 md:p-5 flex flex-col flex-grow border-t">
                                             <div className="text-sm text-[#1D1D1D]">
                                                 {product.priceOptions.length > 1 && "From "}
-                                                {lowestPriceOption?.salePrice != null ? (
-                                                    <>
-                                                        <span className="line-through text-gray-500 mr-2">
-                                                            Rs. {lowestPriceOption.price.toFixed(2)}
-                                                        </span>
-                                                        <span className="text-red-500">
-                                                            Rs. {lowestPriceOption.salePrice.toFixed(2)}
-                                                        </span>
-                                                    </>
-                                                ) : (
-                                                    `Rs. ${displayPrice.toFixed(2)}`
-                                                )}
+                                                {(() => {
+                                                    console.log(`💰 Price display for "${product.name}":`, {
+                                                        isOnSale,
+                                                        lowestPriceOption,
+                                                        calculatedSalePrice: lowestPriceOption?.calculatedSalePrice,
+                                                        salePrice: lowestPriceOption?.salePrice,
+                                                        originalPrice: lowestPriceOption?.originalPrice,
+                                                        price: lowestPriceOption?.price,
+                                                        displayPrice
+                                                    });
+
+                                                    // If product is on sale, show both original and sale prices
+                                                    if (isOnSale) {
+                                                        // Check for calculated sale price from backend
+                                                        if (lowestPriceOption?.calculatedSalePrice && lowestPriceOption?.calculatedSalePrice < lowestPriceOption?.price) {
+                                                            console.log(`✅ Showing calculated sale price for "${product.name}"`);
+                                                            return (
+                                                                <>
+                                                                    <span className="line-through text-gray-500 mr-2">
+                                                                        {formatPrice(lowestPriceOption.originalPrice || lowestPriceOption.price)}
+                                                                    </span>
+                                                                    <span className="text-red-500">
+                                                                        {formatPrice(lowestPriceOption.calculatedSalePrice)}
+                                                                    </span>
+                                                                </>
+                                                            );
+                                                        }
+                                                        // Check for individual sale price
+                                                        else if (lowestPriceOption?.salePrice && lowestPriceOption?.salePrice < lowestPriceOption?.price) {
+                                                            console.log(`✅ Showing individual sale price for "${product.name}"`);
+                                                            return (
+                                                                <>
+                                                                    <span className="line-through text-gray-500 mr-2">
+                                                                        {formatPrice(lowestPriceOption.price)}
+                                                                    </span>
+                                                                    <span className="text-red-500">
+                                                                        {formatPrice(lowestPriceOption.salePrice)}
+                                                                    </span>
+                                                                </>
+                                                            );
+                                                        }
+                                                        // Check for global sale calculation
+                                                        else if (product.sale && product.sale > 0) {
+                                                            console.log(`✅ Showing global sale calculation for "${product.name}"`);
+                                                            const originalPrice = lowestPriceOption?.price || 0;
+                                                            const discountMultiplier = (100 - product.sale) / 100;
+                                                            const calculatedSalePrice = Math.round(originalPrice * discountMultiplier * 100) / 100;
+
+                                                            if (calculatedSalePrice < originalPrice) {
+                                                                return (
+                                                                    <>
+                                                                        <span className="line-through text-gray-500 mr-2">
+                                                                            {formatPrice(originalPrice)}
+                                                                        </span>
+                                                                        <span className="text-red-500">
+                                                                            {formatPrice(calculatedSalePrice)}
+                                                                        </span>
+                                                                    </>
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // If no sale or fallback, show regular price
+                                                    console.log(`❌ No sale price found for "${product.name}", showing regular price`);
+                                                    return formatPrice(displayPrice);
+                                                })()}
                                             </div>
                                             <h3 className="font-semibold text-[15px] md:text-[17px] lg:text-2xl md:font-bold mt-1 relative after:content-[''] after:block after:w-full after:h-[2px] after:bg-black after:scale-x-0 after:transition-transform after:duration-300 after:origin-left group-hover:after:scale-x-100">
                                                 {product.name}

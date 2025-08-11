@@ -37,6 +37,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowLeft, Home } from 'lucide-react';
 import { MSFoodsAd } from "./ms-foods-ad"
+import { formatPrice as formatPriceUtil } from "@/lib/utils"
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "https://ecommercepeachflask-git-main-husnain-alis-projects-dbd16c4d.vercel.app"
@@ -52,6 +53,9 @@ interface PriceOption {
     weight: number
     price: number
     salePrice: number | null
+    calculatedSalePrice?: number | null
+    originalPrice?: number | null
+    globalSalePercentage?: number | null
 }
 
 interface ProductImage {
@@ -73,6 +77,9 @@ interface Product {
     slug?: string
     priceOptions: PriceOption[]
     sale?: number | null
+    calculatedPriceOptions?: PriceOption[]
+    originalPrice?: number
+    hasActiveSales?: boolean
 }
 
 interface SearchResults {
@@ -336,11 +343,7 @@ const Header = () => {
 
     // Format price to include currency
     const formatPrice = (price: number | null) => {
-        if (price === null || price === undefined) return "Price not available"
-        return `Rs.${Number.parseFloat(price.toString()).toLocaleString("en-IN", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })}`
+        return formatPriceUtil(price)
     }
 
     // Get product image URL
@@ -353,10 +356,52 @@ const Header = () => {
 
     // Check if product is on sale
     const isOnSale = (product: Product) => {
-        if (product.sale && product.sale > 0) return true
+        // First check if backend indicates active sales
+        if (product.hasActiveSales) {
+            return true;
+        }
 
+        // Check for meaningful global sale percentage
+        if (product.sale && product.sale > 0) {
+            // Verify that the global sale actually results in a meaningful discount
+            if (product.priceOptions && product.priceOptions.length > 0) {
+                const hasMeaningfulGlobalSale = product.priceOptions.some(option => {
+                    if (!option.price || option.price <= 0) return false;
+
+                    // Skip if individual sale price exists
+                    if (option.salePrice !== null && option.salePrice !== undefined) return false;
+
+                    const discountMultiplier = (100 - product.sale) / 100;
+                    const calculatedSalePrice = Math.round(option.price * discountMultiplier * 100) / 100;
+                    const actualDiscount = option.price - calculatedSalePrice;
+                    const discountPercentage = (actualDiscount / option.price) * 100;
+
+                    return discountPercentage >= 1; // At least 1% discount
+                });
+
+                if (hasMeaningfulGlobalSale) return true;
+            }
+        }
+
+        // Check for individual price option sales that are actually discounts
         if (product.priceOptions && product.priceOptions.length > 0) {
-            return product.priceOptions.some((option) => option.salePrice !== null)
+            return product.priceOptions.some((option) =>
+                option.salePrice !== null &&
+                option.salePrice !== undefined &&
+                option.salePrice > 0 &&
+                option.salePrice < option.price // Ensure it's actually a discount
+            );
+        }
+
+        // Check for calculated sale prices from backend that are meaningful
+        if (product.calculatedPriceOptions && product.calculatedPriceOptions.length > 0) {
+            return product.calculatedPriceOptions.some((option) =>
+                option.calculatedSalePrice !== null &&
+                option.calculatedSalePrice !== undefined &&
+                option.calculatedSalePrice > 0 &&
+                option.originalPrice &&
+                option.calculatedSalePrice < option.originalPrice // Ensure it's actually a discount
+            );
         }
 
         return false
@@ -368,17 +413,54 @@ const Header = () => {
             return formatPrice(0)
         }
 
+        // Use calculated price options from backend if available
+        const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions
+
         // Find the lowest price option
-        const lowestPrice = getLowestPrice(product.priceOptions)
+        const lowestPrice = getLowestPrice(priceOptionsToUse)
 
         // Check if any price option is on sale or if there's a global sale
         if (isOnSale(product)) {
-            return (
-                <div className="flex flex-col">
-                    <span className="font-medium text-red-600">{formatPrice(lowestPrice)}</span>
-                    <span className="text-xs text-gray-500 line-through">{formatPrice(product.priceOptions[0].price)}</span>
-                </div>
-            )
+            // Find the first price option for original price display
+            const firstOption = priceOptionsToUse[0]
+
+            // Check for calculated sale price from backend
+            if (firstOption.calculatedSalePrice && firstOption.calculatedSalePrice < firstOption.price) {
+                const originalPrice = firstOption.originalPrice || firstOption.price
+                return (
+                    <div className="flex flex-col">
+                        <span className="font-medium text-red-600">{formatPrice(firstOption.calculatedSalePrice)}</span>
+                        <span className="text-xs text-gray-500 line-through">{formatPrice(originalPrice)}</span>
+                    </div>
+                )
+            }
+            // Check for individual sale price
+            else if (firstOption.salePrice && firstOption.salePrice < firstOption.price) {
+                return (
+                    <div className="flex flex-col">
+                        <span className="font-medium text-red-600">{formatPrice(firstOption.salePrice)}</span>
+                        <span className="text-xs text-gray-500 line-through">{formatPrice(firstOption.price)}</span>
+                    </div>
+                )
+            }
+            // Check for global sale calculation
+            else if (product.sale && product.sale > 0) {
+                const originalPrice = firstOption.price || 0
+                const discountMultiplier = (100 - product.sale) / 100
+                const calculatedSalePrice = Math.round(originalPrice * discountMultiplier * 100) / 100
+
+                if (calculatedSalePrice < originalPrice) {
+                    return (
+                        <div className="flex flex-col">
+                            <span className="font-medium text-red-600">{formatPrice(calculatedSalePrice)}</span>
+                            <span className="text-xs text-gray-500 line-through">{formatPrice(originalPrice)}</span>
+                        </div>
+                    )
+                }
+            }
+
+            // Fallback to showing the lowest price if sale logic fails
+            return formatPrice(lowestPrice)
         }
 
         return formatPrice(lowestPrice)
@@ -444,9 +526,6 @@ const Header = () => {
                     </div>
                     <div className="text-sm text-gray-700 flex justify-between">
                         <span>{product.name}</span>
-                        {product.priceOptions && product.priceOptions.length > 0 && (
-                            <span className="text-xs text-gray-500 ml-2">{getProductWeightDisplay(product)}</span>
-                        )}
                     </div>
                     {isOnSale(product) && (
                         <div className="flex items-center mt-1">
