@@ -467,20 +467,20 @@ const Header = () => {
     }
 
     // Get product weight display
-    const getProductWeightDisplay = (product: Product) => {
-        if (!product.priceOptions || product.priceOptions.length === 0) {
-            return ""
-        }
+    // const getProductWeightDisplay = (product: Product) => {
+    //     if (!product.priceOptions || product.priceOptions.length === 0) {
+    //         return ""
+    //     }
 
-        // Get the first price option for display
-        const firstOption = product.priceOptions[0]
+    //     // Get the first price option for display
+    //     const firstOption = product.priceOptions[0]
 
-        if (firstOption.type === "packet") {
-            return `${firstOption.weight}g packet`
-        } else {
-            return `${firstOption.weight}g`
-        }
-    }
+    //     if (firstOption.type === "packet") {
+    //         return `${firstOption.weight}g packet`
+    //     } else {
+    //         return `${firstOption.weight}g`
+    //     }
+    // }
 
     // Handle product click with programmatic navigation
     const handleProductClick = (productId: string) => {
