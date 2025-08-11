@@ -156,7 +156,7 @@ export default function ProductGrid() {
                                 // Skip if individual sale price exists
                                 if (option.salePrice !== null && option.salePrice !== undefined) return false;
 
-                                const discountMultiplier = (100 - product.sale) / 100;
+                                const discountMultiplier = (100 - (product.sale ?? 0)) / 100;
                                 const calculatedSalePrice = Math.round(option.price * discountMultiplier * 100) / 100;
                                 const actualDiscount = option.price - calculatedSalePrice;
                                 const discountPercentage = (actualDiscount / option.price) * 100;
