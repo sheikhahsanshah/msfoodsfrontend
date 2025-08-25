@@ -18,7 +18,7 @@ If a refund is not possible due to product unavailability or other circumstances
 
 All refund requests are handled on a case-by-case basis. Our goal is to treat every customer fairly while upholding the quality and safety of our food products.
 
-For assistance with refund requests or questions about this policy, please contact us at msfoodscontact@gmail.com or call +92 321 4729048 during business hours. We are here to help.`
+For assistance with refund requests or questions about this policy, please contact us at contact@msfoods.pk or call +92 321 4729048 during business hours. We are here to help.`
 
 export default function RefundPolicyPage() {
     return <PolicyContent title="Refund Policy" content={content} />

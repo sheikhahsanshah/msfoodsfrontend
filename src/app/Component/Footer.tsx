@@ -11,7 +11,7 @@ const Footer = () => {
                             msFoods
                         </Link>
                         <div className="mt-4 space-y-2">
-                            <p className="text-sm">Email: msfoodscontact@gmail.com</p>
+                            <p className="text-sm">Email: contact@msfoods.pk</p>
                             <p className="text-sm">Phone: 0324-8120893</p>
                             
                            

@@ -18,7 +18,7 @@ If you create an account on our website, you are responsible for maintaining the
 
 We may update this Privacy Policy from time to time to reflect changes in our practices or for legal and regulatory reasons. All updates will be posted on this page, and your continued use of our services constitutes your acceptance of those changes.
 
-If you have any questions or concerns about our privacy practices or the information we hold about you, please feel free to contact us at msfoodscontact@gmail.com or call us at +92 321 4729048.`
+If you have any questions or concerns about our privacy practices or the information we hold about you, please feel free to contact us at contact@msfoods.pk or call us at +92 321 4729048.`
 
 export default function PrivacyPolicyPage() {
     return <PolicyContent title="Privacy Policy" content={content} />

@@ -18,7 +18,7 @@ In the rare event that your package is lost in transit or delivered to the wrong
 
 While we strive for punctuality, delivery timelines are estimates and may be affected by factors beyond our control such as weather conditions, strikes, or public holidays. We appreciate your understanding and patience in such cases.
 
-For any shipping-related questions or issues, you can reach our customer support team at msfoodscontact@gmail.com or call +92 321 4729048 during business hours. We're always here to assist you.`
+For any shipping-related questions or issues, you can reach our customer support team at contact@msfoods.pk or call +92 321 4729048 during business hours. We're always here to assist you.`
 
 export default function ShippingPolicyPage() {
     return <PolicyContent title="Shipping/Service Policy" content={content} />

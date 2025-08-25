@@ -146,7 +146,7 @@ export default function Contact() {
                             Phone: <span className="whitespace-nowrap">0324-8120893 / 0314-0740608  </span>
                         </p>
                         <p className="mt-1 text-gray-700">
-                            Email: <span className="whitespace-nowrap">msfoodscontact@gmail.com</span>
+                            Email: <span className="whitespace-nowrap">contact@msfoods.pk</span>
                         </p>
                     </div>
 
