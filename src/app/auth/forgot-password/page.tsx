@@ -29,8 +29,7 @@ export default function ForgotPasswordPage() {
     const router = useRouter()
     const { toast } = useToast()
     const [isLoading, setIsLoading] = useState(false)
-    // Default to email only
-    const [verificationMethod, setVerificationMethod] = useState<"email" | "phone">("email")
+    // Removed unused verificationMethod state since phone verification is disabled
 
     const emailForm = useForm<z.infer<typeof emailSchema>>({
         resolver: zodResolver(emailSchema),
@@ -92,7 +91,7 @@ export default function ForgotPasswordPage() {
                 </CardHeader>
                 <CardContent>
                     {/* Only email option for now */}
-                    <Tabs defaultValue="email" onValueChange={(value) => setVerificationMethod(value as "email" | "phone")}>
+                    <Tabs defaultValue="email">
                         <TabsList className=" w-full mb-6">
                             <TabsTrigger value="email" className="w-full flex items-center gap-2">
                                 <Mail className="h-4 w-4" />
@@ -169,4 +168,3 @@ export default function ForgotPasswordPage() {
         </div>
     )
 }
-
