@@ -294,7 +294,6 @@ export default function Orders() {
     //     }
     //     return item.name
     // }
-
     const generatePDF = () => {
         if (!currentOrder) return
 
@@ -323,18 +322,25 @@ export default function Orders() {
         doc.text(`${currentOrder.shippingAddress.country}`, 120, 76)
 
         // Order items table with product type information
-        const tableColumn = ["Product", "Type", "Quantity", "Price", "Total"]
-        const tableRows = currentOrder.items.map((item) => [
-            item.name,
-            item.priceOption.type === "weight-based" ? `Weight (${item.priceOption.weight}g)` : "Packet",
-            item.quantity.toString(),
-            item.priceOption?.originalPrice && item.priceOption.originalPrice > item.priceOption.price 
-                ? `Rs ${item.priceOption.originalPrice.toFixed(2)} → Rs ${item.priceOption.price.toFixed(2)}`
-                : `Rs ${item.priceOption?.price ? item.priceOption.price.toFixed(2) : "0.00"}`,
-            `Rs ${item.priceOption?.price ? (item.quantity * item.priceOption.price).toFixed(2) : "0.00"}`,
-        ])
+        const tableColumn = ["Product", "Type", "Quantity", "Price", "Total", "Sale Savings"]
+        const tableRows = currentOrder.items.map((item) => {
+            const price = Math.round(item.priceOption?.price ?? 0)
+            const originalPrice = Math.round(item.priceOption?.originalPrice ?? 0)
+            const total = Math.round(item.quantity * price)
+            const saleSavings = originalPrice > price ? (item.quantity * (originalPrice - price)) : 0
 
-        // Use autoTable directly
+            return [
+                item.name,
+                item.priceOption.type === "weight-based" ? `Weight (${item.priceOption.weight}g)` : "Packet",
+                item.quantity.toString(),
+                originalPrice > price
+                    ? `Rs ${originalPrice} → Rs ${price}`
+                    : `Rs ${price}`,
+                `Rs ${total}`,
+                saleSavings > 0 ? `Rs ${saleSavings}` : "-"
+            ]
+        })
+
         autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
@@ -349,35 +355,39 @@ export default function Orders() {
 
         // Order summary
         doc.text("Order Summary:", 14, finalY + 10)
-        doc.text(`Subtotal: Rs ${currentOrder.subtotal.toFixed(2)}`, 14, finalY + 17)
+        doc.text(`Subtotal: Rs ${Math.round(currentOrder.subtotal)}`, 14, finalY + 17)
 
         let summaryY = finalY + 24;
 
         if (currentOrder.couponUsed && currentOrder.couponUsed.eligibleProducts && currentOrder.couponUsed.eligibleProducts.length > 0) {
-            const eligibleSubtotal = currentOrder.items
-                .filter(item => currentOrder.couponUsed!.eligibleProducts.some(p => p._id === item.product))
-                .reduce((acc, item) => acc + (item.priceOption.price * item.quantity), 0)
-                .toFixed(2)
+            const eligibleSubtotal = Math.round(
+                currentOrder.items
+                    .filter(item => currentOrder.couponUsed!.eligibleProducts.some(p => p._id === item.product))
+                    .reduce((acc, item) => acc + (item.priceOption.price * item.quantity), 0)
+            )
             doc.text(`Eligible Subtotal: Rs ${eligibleSubtotal}`, 14, summaryY)
             summaryY += 7
         }
 
         if (currentOrder.subtotal <= 2000) {
-            doc.text(`Shipping: Rs ${currentOrder.shippingCost.toFixed(2)}`, 14, summaryY)
+            doc.text(`Shipping: Rs ${Math.round(currentOrder.shippingCost)}`, 14, summaryY)
         } else {
             doc.text(`Shipping: Free`, 14, summaryY)
         }
         summaryY += 7
 
-        doc.text(`Discount: -Rs ${currentOrder.discount.toFixed(2)}`, 14, summaryY)
-        summaryY += 7
-
-        if (currentOrder.paymentMethod === 'COD' && currentOrder.codFee && currentOrder.codFee > 0) {
-            doc.text(`COD Fee: Rs ${currentOrder.codFee.toFixed(2)}`, 14, summaryY)
+        // Only show discount if it's greater than zero
+        if (currentOrder.discount > 0) {
+            doc.text(`Discount: -Rs ${Math.round(currentOrder.discount)}`, 14, summaryY)
             summaryY += 7
         }
 
-        doc.text(`Total: Rs ${currentOrder.totalAmount.toFixed(2)}`, 14, summaryY)
+        if (currentOrder.paymentMethod === 'COD' && currentOrder.codFee && currentOrder.codFee > 0) {
+            doc.text(`COD Fee: Rs ${Math.round(currentOrder.codFee)}`, 14, summaryY)
+            summaryY += 7
+        }
+
+        doc.text(`Total: Rs ${Math.round(currentOrder.totalAmount)}`, 14, summaryY)
         summaryY += 7
 
         // Payment information

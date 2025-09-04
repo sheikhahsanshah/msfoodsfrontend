@@ -157,10 +157,11 @@ export default function Contact() {
                         <p className="mt-3 text-gray-700">Sunday: Closed</p>
                     </div>
                     <div>
-                        <h3 className="text-2xl font-bold text-black">Delivery Hours</h3>
-                        <p className="mt-3 text-gray-700">Mon - Sun: 10:00 AM – 8:00 PM</p>
-                        
-                    </div>
+                        <h3 className="text-2xl font-bold text-black">Free Delivery</h3>
+                        <p className="mt-3 text-gray-700">
+                            <span className="font-bold text-black">Free</span> delivery on orders over 2000 rupees
+                        </p>
+                    </div>  
                 </div>
             </div>
         </div>

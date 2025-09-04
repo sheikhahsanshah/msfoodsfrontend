@@ -111,7 +111,7 @@ function AuthenticatedSuccess() {
                             </p>
                             <div className="mt-2 flex items-center text-sm text-gray-500">
                                 <Package className="h-5 w-5 mr-2 text-gray-400" />
-                                <span>Estimated delivery: 3–5 business days</span>
+                                <span>Estimated delivery: 1-2 business days</span>
                             </div>
                         </div>
 

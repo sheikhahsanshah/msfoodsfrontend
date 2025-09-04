@@ -94,7 +94,7 @@ const Header = () => {
     const texts = [
         "Delivering In only Lahore ! ",
         "Free shipping on orders above 2000 ",
-        "Shipping within a single day",
+        "Shipping within 1-2 days",
         "Exclusive Deals for Members – Sign Up Now!",
         "Hassle-Free Returns & Refunds Within 7 Days",
     ]
@@ -111,7 +111,7 @@ const Header = () => {
         suggestions: [],
         products: [],
     })
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)   
     const [error, setError] = useState<string | null>(null)
     const searchRef = useRef<HTMLDivElement>(null)
 

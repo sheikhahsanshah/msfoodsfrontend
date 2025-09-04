@@ -75,7 +75,7 @@ export default function ProductDetail() {
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
     const [quantity, setQuantity] = useState(1)
     const [selectedPriceOption, setSelectedPriceOption] = useState<PriceOption | null>(null)
-    const [selectedPriceType, setSelectedPriceType] = useState<string>("packet")
+    const [selectedPriceType, setSelectedPriceType] = useState<string>("weight-based")
     const { cart, addToCart } = useCart()
     const { toast } = useToast()
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -136,17 +136,15 @@ export default function ProductDetail() {
 
                 // Find default price options by type
                 const packetOptions = productData.data.priceOptions.filter((option: PriceOption) => option.type === "packet")
-                const weightOptions = productData.data.priceOptions.filter(
-                    (option: PriceOption) => option.type === "weight-based",
-                )
+                const weightOptions = productData.data.priceOptions.filter((option: PriceOption) => option.type === "weight-based")
 
-                // Set default price type and option
-                if (packetOptions.length > 0) {
-                    setSelectedPriceType("packet")
-                    setSelectedPriceOption(packetOptions[0])
-                } else if (weightOptions.length > 0) {
+                // Prefer weight-based options first, fall back to packet
+                if (weightOptions.length > 0) {
                     setSelectedPriceType("weight-based")
                     setSelectedPriceOption(weightOptions[0])
+                } else if (packetOptions.length > 0) {
+                    setSelectedPriceType("packet")
+                    setSelectedPriceOption(packetOptions[0])
                 }
 
                 // Handle reviews
