@@ -119,10 +119,11 @@ export default function Orders() {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState("10");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  // Pending update for order status. Tracking is disabled/commented out for now.
   const [pendingUpdate, setPendingUpdate] = useState<{
     orderId: string;
     status: string;
-    trackingId: string;
+    // trackingId?: string; // temporarily disabled
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const orderDetailsRef = useRef<HTMLDivElement>(null);
@@ -205,27 +206,26 @@ export default function Orders() {
   const handleStatusChange = (orderId: string, newStatus: string) => {
     const order = orders.find((o) => o._id === orderId);
     if (order) {
+      // Only set orderId and status. Tracking is disabled for now.
       setPendingUpdate({
         orderId,
         status: newStatus,
-        trackingId: pendingUpdate
-          ? pendingUpdate.trackingId || order.trackingId || ""
-          : order.trackingId || "",
       });
       setIsConfirmDialogOpen(true);
     }
   };
 
-  const handleTrackingIdChange = (orderId: string, trackingId: string) => {
-    const order = orders.find((o) => o._id === orderId);
-    if (order) {
-      setPendingUpdate({
-        orderId,
-        status: pendingUpdate?.status || order.status,
-        trackingId,
-      });
-    }
-  };
+  // Tracking input/change handler is disabled for now
+  // const handleTrackingIdChange = (orderId: string, trackingId: string) => {
+  //   const order = orders.find((o) => o._id === orderId)
+  //   if (order) {
+  //     setPendingUpdate({
+  //       orderId,
+  //       status: pendingUpdate?.status || order.status,
+  //       trackingId,
+  //     })
+  //   }
+  // }
 
   const confirmUpdate = (orderId: string) => {
     // If there's already a pending update being processed, don't allow another one
@@ -233,16 +233,13 @@ export default function Orders() {
 
     const order = orders.find((o) => o._id === orderId);
     if (order) {
+      // Only set orderId and status. Tracking is disabled.
       setPendingUpdate({
         orderId,
         status:
           pendingUpdate?.orderId === orderId
             ? pendingUpdate.status
             : order.status,
-        trackingId:
-          pendingUpdate?.orderId === orderId
-            ? pendingUpdate.trackingId
-            : order.trackingId || "",
       });
       setIsConfirmDialogOpen(true);
     }
@@ -274,10 +271,9 @@ export default function Orders() {
       // Format the status to lowercase as required by the API
       const status = pendingUpdate.status.toLowerCase();
 
-      // Create the request body with the properly formatted status
+      // Do NOT send trackingId for now — only send status.
       const requestBody = {
         status: status,
-        trackingId: pendingUpdate.trackingId || "",
       };
 
       console.log("Sending update with data:", requestBody);
@@ -301,11 +297,7 @@ export default function Orders() {
       fetchOrders();
       toast({
         title: "Order Updated",
-        description: `Order status changed to ${pendingUpdate.status}${
-          pendingUpdate.trackingId
-            ? ` with tracking ID ${pendingUpdate.trackingId}`
-            : ""
-        }.`,
+        description: `Order status changed to ${pendingUpdate.status}.`,
       });
     } catch (error) {
       console.error("Error updating order:", error);
@@ -674,28 +666,12 @@ export default function Orders() {
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        placeholder="Tracking ID"
-                        value={
-                          pendingUpdate?.orderId === order._id
-                            ? pendingUpdate.trackingId
-                            : order.trackingId || ""
-                        }
-                        onChange={(e) =>
-                          handleTrackingIdChange(order._id, e.target.value)
-                        }
-                        className="w-[150px]"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => confirmUpdate(order._id)}
-                        disabled={isUpdating || isConfirmDialogOpen}
-                      >
-                        <Truck className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {/* Tracking editing disabled. Show tracking id (read-only) if present. */}
+                    {order.trackingId ? (
+                      <span className="font-medium">{order.trackingId}</span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     {new Date(order.createdAt).toLocaleDateString()}
@@ -851,16 +827,7 @@ export default function Orders() {
                                           {currentOrder.status}
                                         </Badge>
                                       </div>
-                                      {currentOrder.trackingId && (
-                                        <div className="flex justify-between">
-                                          <span className="text-muted-foreground">
-                                            Tracking ID:
-                                          </span>
-                                          <span className="font-medium">
-                                            {currentOrder.trackingId}
-                                          </span>
-                                        </div>
-                                      )}
+                                      {/* Tracking display disabled in details for now. */}
                                       {currentOrder.deliveredAt && (
                                         <div className="flex justify-between">
                                           <span className="text-muted-foreground">
@@ -1179,12 +1146,7 @@ export default function Orders() {
           </DialogHeader>
           <p>Are you sure you want to update this order?</p>
           {pendingUpdate && (
-            <>
-              <p>New Status: {pendingUpdate.status}</p>
-              {pendingUpdate.trackingId && (
-                <p>New Tracking ID: {pendingUpdate.trackingId}</p>
-              )}
-            </>
+            <p>New Status: {pendingUpdate.status}</p>
           )}
           <DialogFooter>
             <Button
