@@ -469,7 +469,7 @@ export default function Orders() {
     // Only show discount if it's greater than zero
     if (currentOrder.discount > 0) {
       doc.text(
-        `Discount: -Rs ${Math.round(currentOrder.discount)}`,
+        `Coupon Discount: -Rs ${Math.round(currentOrder.discount)}`,
         14,
         summaryY
       );
