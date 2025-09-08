@@ -735,27 +735,20 @@ const Header = () => {
                 </div>
             </div>
 
-            {/* Info bar - mobile */}
-            <div className="lg:hidden rounded-md py-2 px-4 flex sm:flex-row items-center justify-between gap-4 bg-gray-50 border shadow-sm">
+            <div className="lg:hidden rounded-lg py-2 px-3 flex flex-row items-center justify-between gap-3 bg-gray-50 border shadow-sm">
                 <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-gray-700" />
+                    <Truck className="h-4 w-4 text-gray-500 mr-2" />
                     <div>
-                        <p className="text-xs text-gray-500">Free Shipping</p>
-                        <p className="text-sm font-medium text-black">Above Rs. 2000</p>
+                        <p className="text-xs text-gray-500">Shipping</p>
+                        <p className="text-sm font-semibold text-black">Rs. 180</p>
+                        <span className="text-xs text-gray-400">Free above Rs.2000</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 justify-end">
-                    <Truck className="h-5 w-5 text-gray-700" />
+                    <Package className="h-4 w-4 text-gray-500 mr-2" />
                     <div>
-                        <p className="text-xs text-gray-500">Minimum Order</p>
-                        <p className="text-sm font-medium text-black">Rs. 800</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 justify-end bg-purple-50 rounded px-3 py-2">
-                    <Tag className="h-5 w-5 text-purple-600" />
-                    <div>
-                        <p className="text-xs text-purple-600 font-semibold">Shipping Charges</p>
-                        <p className="text-sm font-bold text-purple-800">Rs. 180</p>
+                        <p className="text-xs text-gray-500">Min Order</p>
+                        <p className="text-sm font-semibold text-black">Rs. 800</p>
                     </div>
                 </div>
             </div>
