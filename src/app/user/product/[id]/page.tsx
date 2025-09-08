@@ -547,7 +547,7 @@ export default function ProductDetail() {
                                     </div>
                                 )}
                                 <p className="mt-1 text-sm text-gray-500">
-                                    {product.stock > 0 ? `In stock (${product.stock} available)` : "Out of stock"}
+                                    {product.stock > 0 ? `In stock (${product.stock} available)` : "Sold Out"}
                                 </p>
                             </div>
 

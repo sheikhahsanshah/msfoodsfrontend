@@ -760,73 +760,37 @@ export default function AllProducts() {
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {filteredProducts.slice(0, visibleCount).map((product) => {
-                            // Use calculated price options from backend if available
-                            const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions
-                            const sortedPrices = priceOptionsToUse.sort((a, b) => a.price - b.price)
-                            const lowestPriceOption = sortedPrices[0]
-
-                            // Get the best available price (calculated sale price > individual sale price > original price)
-                            const displayPrice = lowestPriceOption?.calculatedSalePrice || lowestPriceOption?.salePrice || lowestPriceOption?.price
-
-                            // Check if product is on sale (global sale or individual sale prices)
+                            const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions;
+                            const sortedPrices = priceOptionsToUse.sort((a, b) => a.price - b.price);
+                            const lowestPriceOption = sortedPrices[0];
+                            const displayPrice = lowestPriceOption?.calculatedSalePrice || lowestPriceOption?.salePrice || lowestPriceOption?.price;
                             const isOnSale = (() => {
-                                console.log(`🔍 Checking if product "${product.name}" is on sale:`, {
-                                    hasActiveSales: product.hasActiveSales,
-                                    sale: product.sale,
-                                    priceOptionsToUse: priceOptionsToUse,
-                                    calculatedPriceOptions: product.calculatedPriceOptions
-                                });
-
-                                // First check if backend indicates active sales
-                                if (product.hasActiveSales) {
-                                    console.log(`✅ Product "${product.name}" has active sales (backend flag)`);
-                                    return true;
-                                }
-
-                                // Check for meaningful global sale
+                                if (product.hasActiveSales) return true;
                                 if (product.sale && product.sale > 0) {
-                                    // Verify that the global sale actually results in a meaningful discount
                                     const hasMeaningfulGlobalSale = priceOptionsToUse.some(option => {
                                         if (!option.price || option.price <= 0) return false;
-
-                                        // Skip if individual sale price exists
                                         if (option.salePrice !== null && option.salePrice !== undefined) return false;
-
                                         const discountMultiplier = (100 - (product.sale ?? 0)) / 100;
                                         const calculatedSalePrice = Math.round(option.price * discountMultiplier * 100) / 100;
                                         const actualDiscount = option.price - calculatedSalePrice;
                                         const discountPercentage = (actualDiscount / option.price) * 100;
-
-                                        return discountPercentage >= 1; // At least 1% discount
+                                        return discountPercentage >= 1;
                                     });
-
-                                    if (hasMeaningfulGlobalSale) {
-                                        console.log(`✅ Product "${product.name}" has meaningful global sale`);
-                                        return true;
-                                    }
+                                    if (hasMeaningfulGlobalSale) return true;
                                 }
-
-                                // Check for individual sale prices that are actually discounts
                                 const hasIndividualSale = priceOptionsToUse.some(option =>
                                     option.salePrice !== null &&
                                     option.salePrice !== undefined &&
                                     option.salePrice > 0 &&
-                                    option.salePrice < option.price // Ensure it's actually a discount
+                                    option.salePrice < option.price
                                 );
-
-                                if (hasIndividualSale) {
-                                    console.log(`✅ Product "${product.name}" has individual sale prices`);
-                                    return true;
-                                }
-
-                                console.log(`❌ Product "${product.name}" is not on sale`);
+                                if (hasIndividualSale) return true;
                                 return false;
                             })();
-
+                            const isOutOfStock = product.stock === 0;
                             return (
                                 <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
                                     <Link href={`/user/product/${product._id}`} className="flex flex-col flex-grow h-full">
-                                        {/* Image Section */}
                                         <CardHeader className={`bg-white p-0 relative aspect-square  overflow-hidden`}>
                                             <Image
                                                 src={product.images[0]?.url || "/placeholder.svg"}
@@ -840,28 +804,18 @@ export default function AllProducts() {
                                                     SALE
                                                 </div>
                                             )}
+                                            {isOutOfStock && (
+                                                <div className="absolute top-2 right-2 bg-gray-700 text-white px-3 py-1 text-xs font-bold z-20 shadow-lg rounded">
+                                                    Sold Out
+                                                </div>
+                                            )}
                                         </CardHeader>
-
-                                        {/* Price & Name */}
                                         <CardContent className="p-3 md:p-5 flex flex-col flex-grow border-t">
                                             <div className="text-sm text-[#1D1D1D]">
                                                 {product.priceOptions.length > 1 && "From "}
                                                 {(() => {
-                                                    console.log(`💰 Price display for "${product.name}":`, {
-                                                        isOnSale,
-                                                        lowestPriceOption,
-                                                        calculatedSalePrice: lowestPriceOption?.calculatedSalePrice,
-                                                        salePrice: lowestPriceOption?.salePrice,
-                                                        originalPrice: lowestPriceOption?.originalPrice,
-                                                        price: lowestPriceOption?.price,
-                                                        displayPrice
-                                                    });
-
-                                                    // If product is on sale, show both original and sale prices
                                                     if (isOnSale) {
-                                                        // Check for calculated sale price from backend
                                                         if (lowestPriceOption?.calculatedSalePrice && lowestPriceOption?.calculatedSalePrice < lowestPriceOption?.price) {
-                                                            console.log(`✅ Showing calculated sale price for "${product.name}"`);
                                                             return (
                                                                 <>
                                                                     <span className="line-through text-gray-500 mr-2">
@@ -873,9 +827,7 @@ export default function AllProducts() {
                                                                 </>
                                                             );
                                                         }
-                                                        // Check for individual sale price
                                                         else if (lowestPriceOption?.salePrice && lowestPriceOption?.salePrice < lowestPriceOption?.price) {
-                                                            console.log(`✅ Showing individual sale price for "${product.name}"`);
                                                             return (
                                                                 <>
                                                                     <span className="line-through text-gray-500 mr-2">
@@ -887,13 +839,10 @@ export default function AllProducts() {
                                                                 </>
                                                             );
                                                         }
-                                                        // Check for global sale calculation
                                                         else if (product.sale && product.sale > 0) {
-                                                            console.log(`✅ Showing global sale calculation for "${product.name}"`);
                                                             const originalPrice = lowestPriceOption?.price || 0;
                                                             const discountMultiplier = (100 - product.sale) / 100;
                                                             const calculatedSalePrice = Math.round(originalPrice * discountMultiplier * 100) / 100;
-
                                                             if (calculatedSalePrice < originalPrice) {
                                                                 return (
                                                                     <>
@@ -908,9 +857,6 @@ export default function AllProducts() {
                                                             }
                                                         }
                                                     }
-
-                                                    // If no sale or fallback, show regular price
-                                                    console.log(`❌ No sale price found for "${product.name}", showing regular price`);
                                                     return formatPrice(displayPrice);
                                                 })()}
                                             </div>
@@ -919,20 +865,19 @@ export default function AllProducts() {
                                             </h3>
                                         </CardContent>
                                     </Link>
-
-                                    {/* CTA Button */}
                                     <CardFooter className="p-3 md:p-5 pt-0 mt-auto">
                                         <Link href={`/user/product/${product._id}`} className="w-full">
                                             <Button
                                                 variant="outline"
                                                 className="w-full text-sm md:text-base rounded-full border-black hover:bg-black hover:text-white"
+                                                disabled={isOutOfStock}
                                             >
-                                                Buy now
+                                                {isOutOfStock ? "Sold Out" : "Buy now"}
                                             </Button>
                                         </Link>
                                     </CardFooter>
                                 </Card>
-                            )
+                            );
                         })}
                     </div>
 

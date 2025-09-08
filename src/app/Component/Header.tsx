@@ -751,6 +751,13 @@ const Header = () => {
                         <p className="text-sm font-medium text-black">Rs. 800</p>
                     </div>
                 </div>
+                <div className="flex items-center gap-2 justify-end bg-purple-50 rounded px-3 py-2">
+                    <Tag className="h-5 w-5 text-purple-600" />
+                    <div>
+                        <p className="text-xs text-purple-600 font-semibold">Shipping Charges</p>
+                        <p className="text-sm font-bold text-purple-800">Rs. 180</p>
+                    </div>
+                </div>
             </div>
 
             <MSFoodsAd location="header" className="" />

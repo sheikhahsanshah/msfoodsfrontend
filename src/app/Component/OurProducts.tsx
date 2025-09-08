@@ -27,7 +27,8 @@ interface Product {
     images: { public_id: string; url: string }[];
     slug: string;
     sale?: number | null;
-    hasActiveSales?: boolean; // Added for backend sales indicator
+    hasActiveSales?: boolean;
+    stock?: boolean; // Add stock property
 }
 
 export default function ProductGrid() {
@@ -127,62 +128,41 @@ export default function ProductGrid() {
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.slice(0, visibleCount).map((product) => {
-                    // const bgColor =
-                    //     bgColors[
-                    //     Math.floor(Math.random() * bgColors.length)
-                    //     ];
-
                     // Use calculated price options from backend if available
                     const priceOptionsToUse = product.calculatedPriceOptions || product.priceOptions
                     const sortedPrices = priceOptionsToUse.sort((a, b) => a.price - b.price);
                     const lowestPriceOption = sortedPrices[0];
 
-                    // Get the best available price (calculated sale price > individual sale price > original price)
                     const displayPrice = lowestPriceOption?.calculatedSalePrice || lowestPriceOption?.salePrice || lowestPriceOption?.price;
 
                     // Check if product is on sale (global sale or individual sale prices)
                     const isOnSale = (() => {
-                        // First check if backend indicates active sales
-                        if (product.hasActiveSales) {
-                            return true;
-                        }
-
-                        // Check for meaningful global sale
+                        if (product.hasActiveSales) return true;
                         if (product.sale && product.sale > 0) {
-                            // Verify that the global sale actually results in a meaningful discount
                             const hasMeaningfulGlobalSale = priceOptionsToUse.some(option => {
                                 if (!option.price || option.price <= 0) return false;
-
-                                // Skip if individual sale price exists
                                 if (option.salePrice !== null && option.salePrice !== undefined) return false;
-
                                 const discountMultiplier = (100 - (product.sale ?? 0)) / 100;
                                 const calculatedSalePrice = Math.round(option.price * discountMultiplier * 100) / 100;
                                 const actualDiscount = option.price - calculatedSalePrice;
                                 const discountPercentage = (actualDiscount / option.price) * 100;
-
-                                return discountPercentage >= 1; // At least 1% discount
+                                return discountPercentage >= 1;
                             });
-
-                            if (hasMeaningfulGlobalSale) {
-                                return true;
-                            }
+                            if (hasMeaningfulGlobalSale) return true;
                         }
-
-                        // Check for individual sale prices that are actually discounts
                         const hasIndividualSale = priceOptionsToUse.some(option =>
                             option.salePrice !== null &&
                             option.salePrice !== undefined &&
                             option.salePrice > 0 &&
-                            option.salePrice < option.price // Ensure it's actually a discount
+                            option.salePrice < option.price
                         );
-
-                        if (hasIndividualSale) {
-                            return true;
-                        }
-
+                        if (hasIndividualSale) return true;
                         return false;
                     })();
+
+                    // Out of stock logic: show badge and disable buy button
+                    const isOutOfStock = product.stock === 0;
+                    console.log(`Product: ${product.name}, In Stock: ${product.stock}, isOutOfStock: ${isOutOfStock}`);
 
                     return (
                         <Card key={product._id} className="group flex flex-col overflow-hidden h-full">
@@ -200,15 +180,18 @@ export default function ProductGrid() {
                                             SALE
                                         </div>
                                     )}
+                                    {isOutOfStock && (
+                                        <div className="absolute t  op-2 right-2 bg-gray-700 text-white px-3 py-1 text-xs font-bold z-20 shadow-lg rounded">
+                                            Sold Out
+                                        </div>
+                                    )}
                                 </CardHeader>
 
                                 <CardContent className="p-5 flex flex-col flex-grow">
                                     <div className="text-sm text-[#1D1D1D]">
                                         {product.priceOptions.length > 1 ? "From " : ""}
                                         {(() => {
-                                            // If product is on sale, show both original and sale prices
                                             if (isOnSale) {
-                                                // Check for calculated sale price from backend
                                                 if (lowestPriceOption?.calculatedSalePrice && lowestPriceOption?.calculatedSalePrice < lowestPriceOption?.price) {
                                                     return (
                                                         <span>
@@ -221,7 +204,6 @@ export default function ProductGrid() {
                                                         </span>
                                                     );
                                                 }
-                                                // Check for individual sale price
                                                 else if (lowestPriceOption?.salePrice && lowestPriceOption?.salePrice < lowestPriceOption?.price) {
                                                     return (
                                                         <span>
@@ -234,12 +216,10 @@ export default function ProductGrid() {
                                                         </span>
                                                     );
                                                 }
-                                                // Check for global sale calculation
                                                 else if (product.sale && product.sale > 0) {
                                                     const originalPrice = lowestPriceOption?.price || 0;
                                                     const discountMultiplier = (100 - product.sale) / 100;
                                                     const calculatedSalePrice = Math.round(originalPrice * discountMultiplier * 100) / 100;
-
                                                     if (calculatedSalePrice < originalPrice) {
                                                         return (
                                                             <span>
@@ -254,8 +234,6 @@ export default function ProductGrid() {
                                                     }
                                                 }
                                             }
-
-                                            // If no sale or fallback, show regular price
                                             return displayPrice ? formatPrice(displayPrice) : "Price not available";
                                         })()}
                                     </div>
@@ -269,8 +247,9 @@ export default function ProductGrid() {
                                     <Button
                                         variant="outline"
                                         className="w-full rounded-full border-black hover:bg-black hover:text-white text-sm md:text-base"
+                                        disabled={isOutOfStock}
                                     >
-                                        Buy now
+                                        {isOutOfStock ? "Out of Stock" : "Buy now"}
                                     </Button>
                                 </Link>
                             </CardFooter>
