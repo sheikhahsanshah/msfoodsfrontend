@@ -362,7 +362,7 @@ export default function Orders() {
     doc.text(`Name: ${currentOrder.shippingAddress.fullName}`, 14, 62);
     doc.text(`Email: ${currentOrder.shippingAddress.email}`, 14, 69);
     const formattedPhone = currentOrder.shippingAddress.phone.startsWith("+92")
-      ? currentOrder.shippingAddress.phone.replace("+92", "03")
+      ? currentOrder.shippingAddress.phone.replace("+92", "0")
       : currentOrder.shippingAddress.phone;
 
     doc.text(`Phone: ${formattedPhone}`, 14, 76);

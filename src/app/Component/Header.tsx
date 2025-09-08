@@ -736,20 +736,19 @@ const Header = () => {
             </div>
 
             {/* Info bar - mobile */}
-            {/* Info bar - mobile */}
-            <div className="lg:hidden  rounded-md py-2 px-4 flex  sm:flex-row items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4 shadow-sm">
-                <div className="flex items-center space-x-3">
-                    <Clock className="h-5 w-5 text-yellow-600" />
+            <div className="lg:hidden rounded-md py-2 px-4 flex sm:flex-row items-center justify-between gap-4 bg-gray-50 border shadow-sm">
+                <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-gray-700" />
                     <div>
-                        <p className="text-xs text-gray-600">Delivery Hours</p>
-                        <p className="text-base font-semibold text-yellow-800">10:00 AM – 8:00 PM</p>
+                        <p className="text-xs text-gray-500">Free Shipping</p>
+                        <p className="text-sm font-medium text-black">Above Rs. 2000</p>
                     </div>
                 </div>
-                <div className="flex items-center justify-end space-x-3">
-                    <Truck className="h-5 w-5 text-yellow-600" />
+                <div className="flex items-center gap-2 justify-end">
+                    <Truck className="h-5 w-5 text-gray-700" />
                     <div>
-                        <p className="text-xs text-gray-600">Minimum Order</p>
-                        <p className="text-base font-semibold text-yellow-800">Rs 800</p>
+                        <p className="text-xs text-gray-500">Minimum Order</p>
+                        <p className="text-sm font-medium text-black">Rs. 800</p>
                     </div>
                 </div>
             </div>
