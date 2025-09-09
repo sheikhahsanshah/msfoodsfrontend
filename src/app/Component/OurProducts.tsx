@@ -28,7 +28,7 @@ interface Product {
     slug: string;
     sale?: number | null;
     hasActiveSales?: boolean;
-    stock?: boolean; // Add stock property
+    stock?: number; // Add stock property
 }
 
 export default function ProductGrid() {

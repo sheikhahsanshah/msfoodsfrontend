@@ -13,7 +13,6 @@ import {
     ChevronRight,
     ChevronDown,
     Clock,
-    Truck,
     User,
     ShoppingCart,
     Search,
@@ -737,11 +736,9 @@ const Header = () => {
 
             <div className="lg:hidden rounded-lg py-2 px-3 flex flex-row items-center justify-between gap-3 bg-gray-50 border shadow-sm">
                 <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-gray-500 mr-2" />
                     <div>
-                        <p className="text-xs text-gray-500">Shipping</p>
-                        <p className="text-sm font-semibold text-black">Rs. 180</p>
-                        <span className="text-xs text-gray-400">Free above Rs.2000</span>
+                        <p className="text-xs text-gray-800"><span className="font-semibold text-sm text-gray-800">Shipping</span> Rs 180 </p>
+                        <span className="text-xs text-gray-800 font-semibold">Free above <span className="font-normal text-gray-800">Rs.2000</span></span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 justify-end">
