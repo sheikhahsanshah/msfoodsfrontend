@@ -92,8 +92,8 @@ const Header = () => {
     const { user, logout } = useUser()
     const texts = [
         "Delivering In only Lahore ! ",
-        "Free shipping on orders above 2000 ",
         "Shipping within 1-2 days",
+        "Free shipping on orders above 2000 ",
         "Exclusive Deals for Members – Sign Up Now!",
         "Hassle-Free Returns & Refunds Within 7 Days",
     ]
@@ -544,7 +544,12 @@ const Header = () => {
                 <motion.div
                     className="flex space-x-10 text-sm font-medium whitespace-nowrap"
                     animate={{ x: ["100%", "-100%"] }}
-                    transition={{ ease: "linear", duration: 25, repeat: Number.POSITIVE_INFINITY }}
+                    // Use a shorter duration for mobile, default for desktop
+                    transition={{
+                        ease: "linear",
+                        duration: isMobile ? 20 : 25,
+                        repeat: Number.POSITIVE_INFINITY,
+                    }}
                 >
                     {texts.map((text, index) => (
                         <span key={index} className="px-4">
@@ -737,14 +742,14 @@ const Header = () => {
             <div className="lg:hidden rounded-lg py-2 px-3 flex flex-row items-center justify-between gap-3 bg-gray-50 border shadow-sm">
                 <div className="flex items-center gap-2">
                     <div>
-                        <p className="text-xs text-gray-800"><span className="font-semibold text-sm text-gray-800">Shipping</span> Rs 180 </p>
-                        <span className="text-xs text-gray-800 font-semibold">Free above <span className="font-normal text-gray-800">Rs.2000</span></span>
+                        <p className="text-sm font-semibold text-gray-500">Shipping Rs 120</p>
+                        <span className="text-sm text-gray-800 font-semibold">Free above Rs.2000</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 justify-end">
                     <Package className="h-4 w-4 text-gray-500 mr-2" />
                     <div>
-                        <p className="text-xs text-gray-500">Min Order</p>
+                        <p className="text-sm text-gray-500">Min Order</p>
                         <p className="text-sm font-semibold text-black">Rs. 800</p>
                     </div>
                 </div>

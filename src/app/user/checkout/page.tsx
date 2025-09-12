@@ -979,10 +979,18 @@ function OrderSummaryCollapsible({
                                 <p className="text-sm text-gray-600">Subtotal</p>
                                 <p className="text-sm font-medium text-gray-900">Rs.{subtotal.toLocaleString()}</p>
                             </div>
+                            
                             {saleSavings > 0 && (
                                 <div className="flex justify-between">
                                     <p className="text-sm text-gray-600">Sale Savings</p>
                                     <p className="text-sm font-medium text-green-600">-Rs.{saleSavings.toLocaleString()}</p>
+                                </div>
+                            )}
+
+                            {discount > 0 && (
+                                <div className="flex justify-between">
+                                    <p className="text-sm text-gray-600">Coupon Discount</p>
+                                    <p className="text-sm font-medium text-green-600">-Rs.{discount.toLocaleString()}</p>
                                 </div>
                             )}
 
@@ -992,13 +1000,6 @@ function OrderSummaryCollapsible({
                                     {shippingCost === 0 ? "Free" : `Rs.${shippingCost.toLocaleString()}`}
                                 </p>
                             </div>
-
-                            {discount > 0 && (
-                                <div className="flex justify-between">
-                                    <p className="text-sm text-gray-600">Discount</p>
-                                    <p className="text-sm font-medium text-green-600">-Rs.{discount.toLocaleString()}</p>
-                                </div>
-                            )}
 
                             <Separator />
                             {codFee > 0 && (
