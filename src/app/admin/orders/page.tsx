@@ -426,11 +426,11 @@ const generatePDF = () => {
       fontStyle: 'bold'
     },
     columnStyles: {
-      0: { cellWidth: 55 }, // Product name - slightly reduced
-      1: { cellWidth: 25, halign: "center" }, // Type - reduced
-      2: { cellWidth: 15, halign: "center" }, // Quantity - reduced (Qty)
-      3: { cellWidth: 35, halign: "right" }, // Price - increased width
-      4: { cellWidth: 35, halign: "right" }, // Total - increased width
+      0: { cellWidth: 50 }, // Product name
+      1: { cellWidth: 30, halign: "center" }, // Type
+      2: { cellWidth: 15, halign: "center" }, // Quantity
+      3: { cellWidth: 25, halign: "right" }, // Price - reduced width since simpler format
+      4: { cellWidth: 25, halign: "right" }, // Total
     },
     // Allow text wrapping in cells
     didParseCell: function(data) {
