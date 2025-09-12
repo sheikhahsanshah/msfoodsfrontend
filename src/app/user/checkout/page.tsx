@@ -719,9 +719,10 @@ export default function CheckoutPage() {
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={(e) => {
-                                                    const file = e.target.files?.[0] ?? null
-                                                    setScreenshotFile(file)
-                                                    setScreenshotPreview(file ? URL.createObjectURL(file) : null)
+                                                    const file = e.target.files?.[0] ?? null;
+                                                    setScreenshotFile(file);
+                                                    setScreenshotPreview(file ? URL.createObjectURL(file) : null);
+                                                    e.target.value = ""; // Reset input so same file can be selected again
                                                 }}
                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             />
@@ -979,7 +980,7 @@ function OrderSummaryCollapsible({
                                 <p className="text-sm text-gray-600">Subtotal</p>
                                 <p className="text-sm font-medium text-gray-900">Rs.{subtotal.toLocaleString()}</p>
                             </div>
-                            
+
                             {saleSavings > 0 && (
                                 <div className="flex justify-between">
                                     <p className="text-sm text-gray-600">Sale Savings</p>
