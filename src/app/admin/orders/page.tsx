@@ -433,9 +433,10 @@ const generatePDF = () => {
   const finalY =
     (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable
       .finalY || 120;
+  // Get the y position after the table
 
   // ===== Billing Summary (formatted as requested) =====
-  let summaryY = finalY + 15;
+  let summaryY = finalY + 10;
   doc.setFontSize(12);
   doc.text("Order Summary:", 14, summaryY);
   summaryY += 7;
@@ -457,7 +458,7 @@ const generatePDF = () => {
   const codFee = Math.round(currentOrder.codFee ?? 0);
   const orderTotal = Math.round(currentOrder.totalAmount);
 
-  // Original Subtotal (only if there's a saving)
+  // Original Subtotal (only if there’s a saving)
   if (saleSavings > 0) {
     doc.setTextColor(100);
     doc.setFont("helvetica", "normal");
@@ -516,9 +517,9 @@ const generatePDF = () => {
 
   // Payment information
   doc.setFontSize(12);
-  doc.text(`Payment Method: ${currentOrder.paymentMethod}`, 120, finalY + 15);
+  doc.text(`Payment Method: ${currentOrder.paymentMethod}`, 120, finalY + 10);
   if (currentOrder.trackingId) {
-    doc.text(`Tracking ID: ${currentOrder.trackingId}`, 120, finalY + 22);
+    doc.text(`Tracking ID: ${currentOrder.trackingId}`, 120, finalY + 17);
   }
 
   // Footer
