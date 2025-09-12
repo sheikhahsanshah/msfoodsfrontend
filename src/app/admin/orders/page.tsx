@@ -449,9 +449,16 @@ const generatePDF = () => {
   // Original Subtotal (only if there’s a saving)
   if (saleSavings > 0) {
     doc.setTextColor(100);
+    doc.setFont("helvetica", "normal");
+    // Draw the text
     doc.text(`Original Subtotal: Rs ${originalSubtotal}`, 14, summaryY, {
       align: "left",
     });
+    // Calculate the width of the text for strikethrough
+    const textWidth = doc.getTextWidth(`Original Subtotal: Rs ${originalSubtotal}`);
+    // Draw a line over the text for strikethrough
+    doc.setLineWidth(0.5);
+    doc.line(14, summaryY - 2, 14 + textWidth, summaryY - 2);
     summaryY += 7;
     doc.setTextColor(0);
   }
