@@ -382,28 +382,19 @@ const generatePDF = () => {
   );
   doc.text(`${currentOrder.shippingAddress.country}`, 120, 76);
 
-  // Order items table with improved column widths
-  const tableColumn = ["Product", "Type", "Qty", "Price", "Total"];
+  // Order items table with much better spacing
+  const tableColumn = ["Product", "Type", "Qty", "Unit Price", "Total"];
   const tableRows = currentOrder.items.map((item) => {
     const price = Math.round(item.priceOption?.price ?? 0);
-    const originalPrice = Math.round(item.priceOption?.originalPrice ?? 0);
     const total = Math.round(item.quantity * price);
-
-    // Format price display to prevent overflow
-    let priceDisplay;
-    if (originalPrice > price) {
-      priceDisplay = `Rs ${originalPrice}\n→ Rs ${price}`;
-    } else {
-      priceDisplay = `Rs ${price}`;
-    }
 
     return [
       item.name,
       item.priceOption.type === "weight-based"
-        ? `Weight\n(${item.priceOption.weight}g)`
+        ? `${item.priceOption.weight}g`
         : "Packet",
       item.quantity.toString(),
-      priceDisplay,
+      `Rs ${price}`,
       `Rs ${total}`,
     ];
   });
@@ -412,37 +403,30 @@ const generatePDF = () => {
     head: [tableColumn],
     body: tableRows,
     startY: 85,
-    theme: "grid",
+    theme: "striped",
     styles: { 
-      fontSize: 9, 
-      cellPadding: 3,
-      lineColor: [200, 200, 200],
-      lineWidth: 0.1
+      fontSize: 10, 
+      cellPadding: 4,
+      overflow: 'linebreak',
+      halign: 'left'
     },
     headStyles: { 
       fillColor: [66, 66, 66],
       textColor: [255, 255, 255],
-      fontSize: 10,
-      fontStyle: 'bold'
+      fontSize: 11,
+      fontStyle: 'bold',
+      halign: 'center'
     },
     columnStyles: {
-      0: { cellWidth: 50 }, // Product name
-      1: { cellWidth: 30, halign: "center" }, // Type
+      0: { cellWidth: 70, halign: "left" },   // Product - much wider
+      1: { cellWidth: 25, halign: "center" }, // Type 
       2: { cellWidth: 15, halign: "center" }, // Quantity
-      3: { cellWidth: 25, halign: "right" }, // Price - reduced width since simpler format
-      4: { cellWidth: 25, halign: "right" }, // Total
+      3: { cellWidth: 30, halign: "right" },  // Unit Price - wider
+      4: { cellWidth: 30, halign: "right" },  // Total - wider
     },
-    // Allow text wrapping in cells
-    didParseCell: function(data) {
-      if (data.column.index === 3 || data.column.index === 4) {
-        // For price and total columns, ensure proper spacing
-        data.cell.styles.cellPadding = { top: 3, right: 2, bottom: 3, left: 2 };
-      }
-    },
-    // Adjust row height for multi-line content
-    didDrawCell: function(data) {
-      // This ensures cells have enough height for multi-line content
-    }
+    // Force proper spacing
+    margin: { left: 14, right: 14 },
+    tableWidth: 'wrap'
   });
 
   // Get the y position after the table
@@ -451,7 +435,7 @@ const generatePDF = () => {
       .finalY || 120;
 
   // ===== Billing Summary (formatted as requested) =====
-  let summaryY = finalY + 15; // Increased spacing after table
+  let summaryY = finalY + 15;
   doc.setFontSize(12);
   doc.text("Order Summary:", 14, summaryY);
   summaryY += 7;
@@ -546,7 +530,6 @@ const generatePDF = () => {
   // Save the PDF
   doc.save(`Order-${currentOrder._id}.pdf`);
 };
-
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case "Processing":

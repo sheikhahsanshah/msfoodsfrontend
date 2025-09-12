@@ -718,6 +718,7 @@ export default function CheckoutPage() {
                                                 name="screenshot"
                                                 type="file"
                                                 accept="image/*"
+                                                onClick={e => e.stopPropagation()}
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0] ?? null;
                                                     setScreenshotFile(file);
