@@ -748,9 +748,10 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-2 justify-end">
                     <Package className="h-4 w-4 text-gray-500 mr-2" />
-                    <div>
+                    <div className="flex flex-col items-center">
                         <p className="text-sm text-gray-500">Min Order</p>
-                        <p className="text-sm font-semibold text-black">Rs. 800</p>
+                        <p className="text-sm font-semibold text-black pl
+                        -2">Rs. 800</p>
                     </div>
                 </div>
             </div>
@@ -779,7 +780,7 @@ const Header = () => {
                         placeholder="Search for..."
                         className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200"
                     />
-
+    
                     {/* Search results dropdown for mobile */}
                     {showResults && (
                         <div

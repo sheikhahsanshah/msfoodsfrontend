@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams,  } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,10 +25,9 @@ interface Order {
 }
 
 export default function CheckoutSuccessPage() {
-    const { isAuthenticated } = useUser();
-    // if signed in, show full order details
     return <AuthenticatedSuccess />;
 }
+
 function AuthenticatedSuccess() {
     const params = useSearchParams();
     const orderId = params.get("orderId");
