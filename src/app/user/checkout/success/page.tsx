@@ -6,7 +6,6 @@ import Link from "next/link";
 import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useUser } from "@/app/Component/user-context";
 
 interface Order {
     _id: string;

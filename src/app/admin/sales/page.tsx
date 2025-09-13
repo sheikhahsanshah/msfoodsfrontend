@@ -5,7 +5,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, Loader } from "lucide-react"
-import { authFetch } from "@/app/utils/auth-helpers"
 import { useToast } from "@/components/ui/use-toast"
 
 interface SalesStats {
@@ -44,7 +43,6 @@ export default function Sales() {
             } else {
                 queryParams.append("period", timeRange)
             }
-            const token = localStorage.getItem("accessToken")
             const response = await fetch(`${API_URL}/api/orders/sales?${queryParams}`, {
                 headers: {
                     "Content-Type": "application/json",
