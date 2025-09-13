@@ -27,12 +27,14 @@ interface Order {
 export default function CheckoutSuccessPage() {
     const { isAuthenticated } = useUser();
     // if signed in, show full order details
-    return isAuthenticated ? <AuthenticatedSuccess /> : <GuestSuccess />;
+    return <AuthenticatedSuccess />;
 }
-
 function AuthenticatedSuccess() {
     const params = useSearchParams();
     const orderId = params.get("orderId");
+    const name = params.get("name");
+    const email = params.get("email");
+    const phone = params.get("phone");
     const [order, setOrder] = useState<Order | null>(null);
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : "";
 
@@ -41,17 +43,25 @@ function AuthenticatedSuccess() {
         fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/orders/${orderId}`,
             {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
                 credentials: "include",
+                body: JSON.stringify({
+                    user: {
+                        name,
+                        email,
+                        phone,
+                    },
+                }),
             }
         )
             .then(res => res.json())
             .then(({ data }) => setOrder(data))
             .catch(console.error);
-    }, [orderId, token]);
+    }, [orderId, name, email, phone, token]);
 
     if (!order) {
         return (
@@ -141,30 +151,3 @@ function AuthenticatedSuccess() {
     );
 }
 
-function GuestSuccess() {
-    const router = useRouter();
-
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-16">
-            <div className="max-w-md w-full text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-6 mx-auto">
-                    <CheckCircle2 className="h-8 w-8 text-green-600" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    Thank you for your order!
-                </h1>
-                <p className="text-gray-600 mb-6">
-                    Your order has been placed successfully.
-                </p>
-                <div className="space-x-2">
-                    <Button onClick={() => router.push("/products")}>
-                        Continue Shopping
-                    </Button>
-                    <Button variant="outline" onClick={() => router.push("/")}>
-                        Go to Home
-                    </Button>
-                </div>
-            </div>
-        </div>
-    );
-}

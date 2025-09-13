@@ -341,9 +341,15 @@ export default function CheckoutPage() {
                 const result = await res.json();
                 if (!res.ok) throw new Error(result.message || "Order failed");
 
-                clearCart();
-                router.push(`/user/checkout/success?orderId=${result.data._id}`);
-                return; // done!
+                                clearCart();
+                                const params = new URLSearchParams({
+                                    orderId: result.data._id,
+                                    name: formData.fullName,
+                                    email: formData.email,
+                                    phone: formData.phone,
+                                }).toString();
+                                router.push(`/user/checkout/success?${params}`);
+                                return; // done!
             }
 
             // 4️⃣ COD fallback
@@ -377,8 +383,14 @@ export default function CheckoutPage() {
             const result = await res.json();
             if (!res.ok) throw new Error(result.message || "Order failed");
 
-            clearCart();
-            router.push(`/user/checkout/success?orderId=${result.data._id}`);
+                        clearCart();
+                        const params = new URLSearchParams({
+                            orderId: result.data._id,
+                            name: formData.fullName,
+                            email: formData.email,
+                            phone: formData.phone,
+                        }).toString();
+                        router.push(`/user/checkout/success?${params}`);
         } catch (err) {
             toast({
                 title: "Order Error",

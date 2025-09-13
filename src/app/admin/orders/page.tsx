@@ -463,19 +463,20 @@ const generatePDF = () => {
     doc.setTextColor(100);
     doc.setFont("helvetica", "normal");
     // Draw the text
-    doc.text(`Original Subtotal: Rs ${originalSubtotal}`, 14, summaryY, {
-      align: "left",
-    });
-    // Calculate the width of the text for strikethrough
-    const textWidth = doc.getTextWidth(`Original Subtotal: Rs ${originalSubtotal}`);
-    // Draw a line over the text for strikethrough
+    const label = "Original Subtotal: Rs ";
+    const value = `${originalSubtotal}`;
+    doc.text(label + value, 14, summaryY, { align: "left" });
+    // Calculate the width of the label and value separately
+    const labelWidth = doc.getTextWidth(label);
+    const valueWidth = doc.getTextWidth(value);
+    // Draw a line only over the numbers for strikethrough
     doc.setLineWidth(0.5);
-    doc.line(14, summaryY - 2, 14 + textWidth, summaryY - 2);
+    doc.line(14 + labelWidth, summaryY - 2, 14 + labelWidth + valueWidth, summaryY - 2);
     summaryY += 7;
     doc.setTextColor(0);
   }
 
-  // Subtotal
+  // Subtotal 
   doc.text(`Subtotal: Rs ${subtotal}`, 14, summaryY);
   summaryY += 7;
 
